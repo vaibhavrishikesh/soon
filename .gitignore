@@ -1,0 +1,13 @@
+# Xcode / Swift
+build/
+DerivedData/
+*.xcuserstate
+*.xcuserdatad/
+xcuserdata/
+.swiftpm/
+
+# xcodegen generates this from project.yml — don't commit it
+*.xcodeproj
+
+# macOS
+.DS_Store
