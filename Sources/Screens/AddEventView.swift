@@ -14,6 +14,9 @@ struct AddEventView: View {
     @State private var remindDayBefore: Bool
     @State private var remindOnDay: Bool
     @State private var permissionDenied = false
+    @FocusState private var titleFocused: Bool
+
+    private var canSave: Bool { !title.trimmingCharacters(in: .whitespaces).isEmpty }
 
     private let symbols = [
         "sparkles", "birthday.cake.fill", "airplane", "heart.fill",
@@ -45,6 +48,9 @@ struct AddEventView: View {
                             TextField("e.g. Goa Trip", text: $title)
                                 .textInputAutocapitalization(.words)
                                 .foregroundStyle(.white)
+                                .focused($titleFocused)
+                                .submitLabel(.done)
+                                .onSubmit { titleFocused = false }
                         }
                         field("Date & time") {
                             DatePicker("", selection: $date,
@@ -59,17 +65,33 @@ struct AddEventView: View {
                     .padding(18)
                     .padding(.bottom, 30)
                 }
+                .scrollDismissesKeyboard(.interactively)
             }
+            .contentShape(Rectangle())
+            .onTapGesture { titleFocused = false }
             .navigationTitle(editing == nil ? "New Countdown" : "Edit")
             .navigationBarTitleDisplayMode(.inline)
+            .toolbarBackground(Theme.card, for: .navigationBar)
+            .toolbarBackground(.visible, for: .navigationBar)
+            .toolbarColorScheme(.dark, for: .navigationBar)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
-                    Button("Cancel") { dismiss() }.tint(.white)
+                    Button("Cancel") { dismiss() }
+                        .font(.body.weight(.semibold)).tint(.white)
                 }
                 ToolbarItem(placement: .confirmationAction) {
-                    Button("Save", action: save)
-                        .bold().tint(.white)
-                        .disabled(title.trimmingCharacters(in: .whitespaces).isEmpty)
+                    Button(action: save) {
+                        Text("Save").font(.body.bold()).foregroundStyle(.white)
+                            .padding(.horizontal, 16).padding(.vertical, 7)
+                            .background(canSave ? AnyShapeStyle(Palette.gradient(colorIndex))
+                                                : AnyShapeStyle(Color.white.opacity(0.18)),
+                                        in: Capsule())
+                    }
+                    .disabled(!canSave)
+                }
+                ToolbarItemGroup(placement: .keyboard) {
+                    Spacer()
+                    Button("Done") { titleFocused = false }.font(.body.bold())
                 }
             }
         }
