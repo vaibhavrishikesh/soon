@@ -131,11 +131,27 @@ private struct LockRectangular: View {
             Image(systemName: event.symbol).font(.title3)
             VStack(alignment: .leading, spacing: 1) {
                 Text(event.title).font(.headline).lineLimit(1)
-                Text(lockSubtitle(days: days)).font(.caption)
+                if days >= 1, let nextMidnight = Self.nextMidnight(after: asOf) {
+                    // Live "5d 14:23:07": days stays consistent with the app, the
+                    // ticker counts down to the next midnight (when days flips to 4d).
+                    HStack(spacing: 5) {
+                        Text("\(days)d").font(.caption.bold())
+                        Text(timerInterval: asOf...nextMidnight, countsDown: true)
+                            .font(.caption.monospacedDigit())
+                    }
+                } else {
+                    Text(lockSubtitle(days: days)).font(.caption)
+                }
             }
             Spacer(minLength: 0)
         }
         .containerBackground(for: .widget) { Color.clear }
+    }
+
+    /// Next local midnight strictly after `date` — the moment the day count drops.
+    private static func nextMidnight(after date: Date) -> Date? {
+        let cal = Calendar.current
+        return cal.date(byAdding: .day, value: 1, to: cal.startOfDay(for: date))
     }
 }
 
