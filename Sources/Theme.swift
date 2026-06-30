@@ -14,6 +14,21 @@ enum Theme {
     static let bg      = Color(hex: 0x0E0E14)
     static let card    = Color(hex: 0x191921)
     static let textDim = Color.white.opacity(0.55)
+
+    /// Rich app background — soft indigo glow up top fading into near-black,
+    /// so empty space doesn't read as a flat black void.
+    static var background: some View {
+        ZStack {
+            bg
+            LinearGradient(colors: [Color(hex: 0x1B1733), bg],
+                           startPoint: .top, endPoint: .center)
+            RadialGradient(colors: [Color(hex: 0x6D5BFF).opacity(0.22), .clear],
+                           center: .topLeading, startRadius: 0, endRadius: 520)
+            RadialGradient(colors: [Color(hex: 0xEC38BC).opacity(0.12), .clear],
+                           center: .bottomTrailing, startRadius: 0, endRadius: 460)
+        }
+        .ignoresSafeArea()
+    }
 }
 
 /// Gradient palette used for event cards. Index wraps around.
