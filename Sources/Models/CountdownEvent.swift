@@ -3,9 +3,33 @@ import SwiftUI
 struct CountdownEvent: Identifiable, Codable, Hashable {
     var id: UUID = UUID()
     var title: String
-    var date: Date
+    var date: Date          // includes a time-of-day (used for reminders)
     var symbol: String      // SF Symbol name
     var colorIndex: Int     // index into Palette.gradients
+    var remindDayBefore: Bool = false
+    var remindOnDay: Bool = false
+
+    init(id: UUID = UUID(), title: String, date: Date, symbol: String, colorIndex: Int,
+         remindDayBefore: Bool = false, remindOnDay: Bool = false) {
+        self.id = id; self.title = title; self.date = date; self.symbol = symbol
+        self.colorIndex = colorIndex
+        self.remindDayBefore = remindDayBefore; self.remindOnDay = remindOnDay
+    }
+
+    // Migration-safe decode: events saved before reminders existed lack these keys.
+    enum CodingKeys: String, CodingKey {
+        case id, title, date, symbol, colorIndex, remindDayBefore, remindOnDay
+    }
+    init(from decoder: Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        id         = try c.decodeIfPresent(UUID.self, forKey: .id) ?? UUID()
+        title      = try c.decode(String.self, forKey: .title)
+        date       = try c.decode(Date.self, forKey: .date)
+        symbol     = try c.decode(String.self, forKey: .symbol)
+        colorIndex = try c.decode(Int.self, forKey: .colorIndex)
+        remindDayBefore = try c.decodeIfPresent(Bool.self, forKey: .remindDayBefore) ?? false
+        remindOnDay     = try c.decodeIfPresent(Bool.self, forKey: .remindOnDay) ?? false
+    }
 
     var gradient: LinearGradient { Palette.gradient(colorIndex) }
     var colors: [Color] { Palette.colors(colorIndex) }
@@ -53,6 +77,13 @@ struct CountdownEvent: Identifiable, Codable, Hashable {
     var dateText: String {
         date.formatted(.dateTime.weekday(.wide).day().month(.wide).year())
     }
+
+    /// Date + time-of-day, e.g. "Sunday, 5 July 2026 · 9:00 AM" (detail screen).
+    var dateTimeText: String {
+        dateText + " · " + date.formatted(date: .omitted, time: .shortened)
+    }
+
+    var hasReminder: Bool { remindDayBefore || remindOnDay }
 
     // MARK: Sample seed (shared by the app's first-run and the widget placeholder)
     static var samples: [CountdownEvent] {

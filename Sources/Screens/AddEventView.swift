@@ -11,6 +11,9 @@ struct AddEventView: View {
     @State private var date: Date
     @State private var symbol: String
     @State private var colorIndex: Int
+    @State private var remindDayBefore: Bool
+    @State private var remindOnDay: Bool
+    @State private var permissionDenied = false
 
     private let symbols = [
         "sparkles", "birthday.cake.fill", "airplane", "heart.fill",
@@ -25,6 +28,8 @@ struct AddEventView: View {
         _date = State(initialValue: editing?.date ?? Calendar.current.date(byAdding: .day, value: 7, to: Date())!)
         _symbol = State(initialValue: editing?.symbol ?? "sparkles")
         _colorIndex = State(initialValue: editing?.colorIndex ?? 0)
+        _remindDayBefore = State(initialValue: editing?.remindDayBefore ?? false)
+        _remindOnDay = State(initialValue: editing?.remindOnDay ?? false)
     }
 
     private let cols = [GridItem(.adaptive(minimum: 52), spacing: 12)]
@@ -41,13 +46,15 @@ struct AddEventView: View {
                                 .textInputAutocapitalization(.words)
                                 .foregroundStyle(.white)
                         }
-                        field("Date") {
-                            DatePicker("", selection: $date, displayedComponents: .date)
+                        field("Date & time") {
+                            DatePicker("", selection: $date,
+                                       displayedComponents: [.date, .hourAndMinute])
                                 .labelsHidden().datePickerStyle(.compact)
                                 .tint(Palette.colors(colorIndex)[0])
                         }
                         symbolPicker
                         colorPicker
+                        reminders
                     }
                     .padding(18)
                     .padding(.bottom, 30)
@@ -118,14 +125,43 @@ struct AddEventView: View {
         }
     }
 
+    private var reminders: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text("REMINDERS").font(.caption.bold()).foregroundStyle(Theme.textDim)
+            VStack(spacing: 12) {
+                Toggle("Remind a day before", isOn: $remindDayBefore)
+                    .onChange(of: remindDayBefore) { _, on in if on { requestPermission() } }
+                Toggle("Remind on the day", isOn: $remindOnDay)
+                    .onChange(of: remindOnDay) { _, on in if on { requestPermission() } }
+            }
+            .tint(Palette.colors(colorIndex)[0])
+            .foregroundStyle(.white)
+            .padding(14)
+            .background(Theme.card, in: RoundedRectangle(cornerRadius: 14))
+            if permissionDenied {
+                Text("Notifications are off for Soon — enable them in Settings to get reminders.")
+                    .font(.caption2).foregroundStyle(.orange)
+            }
+        }
+    }
+
+    private func requestPermission() {
+        Task {
+            let granted = await NotificationManager.requestAuthorizationIfNeeded()
+            permissionDenied = !granted
+        }
+    }
+
     private func save() {
         let trimmed = title.trimmingCharacters(in: .whitespaces)
         guard !trimmed.isEmpty else { return }
         if var e = editing {
             e.title = trimmed; e.date = date; e.symbol = symbol; e.colorIndex = colorIndex
+            e.remindDayBefore = remindDayBefore; e.remindOnDay = remindOnDay
             store.update(e)
         } else {
-            store.add(CountdownEvent(title: trimmed, date: date, symbol: symbol, colorIndex: colorIndex))
+            store.add(CountdownEvent(title: trimmed, date: date, symbol: symbol, colorIndex: colorIndex,
+                                     remindDayBefore: remindDayBefore, remindOnDay: remindOnDay))
         }
         dismiss()
     }

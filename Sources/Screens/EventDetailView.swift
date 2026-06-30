@@ -44,8 +44,15 @@ struct EventDetailView: View {
                 Text(current.title)
                     .font(.largeTitle.bold()).foregroundStyle(.white)
                     .multilineTextAlignment(.center).padding(.top, 8)
-                Text(current.dateText)
+                Text(current.dateTimeText)
                     .font(.subheadline).foregroundStyle(.white.opacity(0.8))
+                if current.hasReminder {
+                    Label(current.remindDayBefore && current.remindOnDay ? "Day before & on the day"
+                          : current.remindDayBefore ? "Reminder: day before" : "Reminder: on the day",
+                          systemImage: "bell.fill")
+                        .font(.caption).foregroundStyle(.white.opacity(0.85))
+                        .padding(.top, 2)
+                }
 
                 Spacer()
 

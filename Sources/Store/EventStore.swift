@@ -10,14 +10,21 @@ final class EventStore: ObservableObject {
     /// Upcoming first (soonest on top), then past events (most recent first).
     var sorted: [CountdownEvent] { events.soonestFirst() }
 
-    func add(_ e: CountdownEvent) { events.append(e); save() }
+    func add(_ e: CountdownEvent) {
+        events.append(e); save()
+        NotificationManager.reschedule(e)
+    }
 
     func update(_ e: CountdownEvent) {
         guard let i = events.firstIndex(where: { $0.id == e.id }) else { return }
         events[i] = e; save()
+        NotificationManager.reschedule(e)
     }
 
-    func delete(_ e: CountdownEvent) { events.removeAll { $0.id == e.id }; save() }
+    func delete(_ e: CountdownEvent) {
+        events.removeAll { $0.id == e.id }; save()
+        NotificationManager.cancel(e)
+    }
 
     // MARK: Persistence (App Group — shared with the widget)
     private func load() {

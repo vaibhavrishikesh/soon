@@ -9,6 +9,7 @@ struct SoonApp: App {
             HomeView()
                 .environmentObject(store)
                 .preferredColorScheme(.dark)
+                .task { NotificationManager.rescheduleAll(store.events) }
         }
     }
 }
