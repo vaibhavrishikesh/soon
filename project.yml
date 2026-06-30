@@ -8,17 +8,20 @@ settings:
   base:
     SWIFT_VERSION: "5.0"
     CODE_SIGN_STYLE: Automatic
+    MARKETING_VERSION: "0.1"
+    CURRENT_PROJECT_VERSION: "1"
 targets:
   Soon:
     type: application
     platform: iOS
     sources:
       - path: Sources
+    dependencies:
+      - target: SoonWidget
+        embed: true
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.tranquilwaters.soon
-        MARKETING_VERSION: "0.1"
-        CURRENT_PROJECT_VERSION: "1"
         GENERATE_INFOPLIST_FILE: "YES"
         ASSETCATALOG_COMPILER_APPICON_NAME: "AppIcon"
         INFOPLIST_KEY_CFBundleDisplayName: "Soon"
@@ -26,3 +29,29 @@ targets:
         INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents: "YES"
         INFOPLIST_KEY_UISupportedInterfaceOrientations: "UIInterfaceOrientationPortrait"
         TARGETED_DEVICE_FAMILY: "1"
+    entitlements:
+      path: Soon.entitlements
+      properties:
+        com.apple.security.application-groups:
+          - group.com.tranquilwaters.soon
+
+  SoonWidget:
+    type: app-extension
+    platform: iOS
+    sources:
+      - path: SoonWidget
+      - path: Sources/Models/CountdownEvent.swift
+      - path: Sources/Theme.swift
+      - path: Sources/Store/SharedData.swift
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.tranquilwaters.soon.widget
+        INFOPLIST_FILE: SoonWidget/Info.plist
+        GENERATE_INFOPLIST_FILE: "NO"
+        TARGETED_DEVICE_FAMILY: "1"
+        SKIP_INSTALL: "YES"
+    entitlements:
+      path: SoonWidget/SoonWidget.entitlements
+      properties:
+        com.apple.security.application-groups:
+          - group.com.tranquilwaters.soon

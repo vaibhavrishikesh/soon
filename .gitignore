@@ -6,8 +6,9 @@ DerivedData/
 xcuserdata/
 .swiftpm/
 
-# xcodegen generates this from project.yml — don't commit it
+# xcodegen generates these from project.yml — don't commit them
 *.xcodeproj
+*.entitlements
 
 # macOS
 .DS_Store

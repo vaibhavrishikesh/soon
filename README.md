@@ -19,21 +19,37 @@ xcrun devicectl device install app --device <udid> build/Build/Products/Debug-ip
 
 ## Structure
 ```
-project.yml                 # xcodegen spec
+project.yml                 # xcodegen spec (app + widget targets)
 Sources/
   SoonApp.swift             # @main
-  Theme.swift               # colors + gradient palette
-  Models/CountdownEvent.swift
-  Store/EventStore.swift    # local persistence (UserDefaults + Codable)
+  Theme.swift               # colors + gradient palette          [shared w/ widget]
+  Models/CountdownEvent.swift  # event model + day math           [shared w/ widget]
+  Store/
+    SharedData.swift        # App Group load/save (the bridge)    [shared w/ widget]
+    EventStore.swift        # ObservableObject wrapper + widget reload
   Screens/
     HomeView.swift          # list of countdown cards
     EventCard.swift
     AddEventView.swift      # add / edit (name, date, icon, color)
     EventDetailView.swift   # big full-screen countdown
+SoonWidget/
+  SoonWidget.swift          # WidgetBundle: small + medium + lock-screen
+  Info.plist                # WidgetKit extension point
 ```
 
+The app and the widget share data through the **App Group**
+`group.com.tranquilwaters.soon` (the widget runs in its own process, so events
+live in a shared `UserDefaults` suite via `SharedData`). Editing events calls
+`WidgetCenter.reloadAllTimelines()` so the widget updates immediately.
+
+> **Simulator note:** App Groups need the entitlement embedded, which the
+> `CODE_SIGNING_ALLOWED=NO` simulator build strips. For the widget to read shared
+> data in the simulator, build with ad-hoc signing (`CODE_SIGN_IDENTITY="-"`) — on
+> a real device with a `DEVELOPMENT_TEAM`, automatic signing handles it.
+
 ## Roadmap
-- [ ] Home & lock-screen widgets (WidgetKit)
+- [x] Home & lock-screen widgets (WidgetKit) — auto-shows the soonest countdown
+- [ ] Configurable widget (pick which event via AppIntent)
 - [ ] Notifications (remind me the day before)
 - [ ] iCloud sync
 - [ ] Paywall for unlimited countdowns / premium themes
