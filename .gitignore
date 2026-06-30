@@ -12,3 +12,7 @@ xcuserdata/
 
 # macOS
 .DS_Store
+
+# extra build dirs
+build-sim/
+build-spm/

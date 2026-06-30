@@ -11,6 +11,10 @@ settings:
     DEVELOPMENT_TEAM: "5978FBWL5U"
     MARKETING_VERSION: "0.1"
     CURRENT_PROJECT_VERSION: "1"
+packages:
+  GoogleMobileAds:
+    url: https://github.com/googleads/swift-package-manager-google-mobile-ads
+    from: "11.0.0"
 targets:
   Soon:
     type: application
@@ -20,16 +24,24 @@ targets:
     dependencies:
       - target: SoonWidget
         embed: true
+      - package: GoogleMobileAds
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.tranquilwaters.soon
-        GENERATE_INFOPLIST_FILE: "YES"
+        GENERATE_INFOPLIST_FILE: "NO"
         ASSETCATALOG_COMPILER_APPICON_NAME: "AppIcon"
-        INFOPLIST_KEY_CFBundleDisplayName: "Soon"
-        INFOPLIST_KEY_UILaunchScreen_Generation: "YES"
-        INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents: "YES"
-        INFOPLIST_KEY_UISupportedInterfaceOrientations: "UIInterfaceOrientationPortrait"
         TARGETED_DEVICE_FAMILY: "1"
+    info:
+      path: Soon/Info.plist
+      properties:
+        CFBundleDisplayName: Soon
+        UILaunchScreen: {}
+        UIApplicationSupportsIndirectInputEvents: true
+        UISupportedInterfaceOrientations:
+          - UIInterfaceOrientationPortrait
+        GADApplicationIdentifier: ca-app-pub-4765907187067298~5073486989
+        NSUserTrackingUsageDescription: Used to show you more relevant ads.
+        ITSAppUsesNonExemptEncryption: false
     entitlements:
       path: Soon.entitlements
       properties:

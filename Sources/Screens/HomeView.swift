@@ -43,6 +43,11 @@ struct HomeView: View {
                 }
             }
             .overlay(alignment: .bottom) { addButton }
+            .safeAreaInset(edge: .bottom) {
+                AdBannerView()
+                    .frame(height: 50)
+                    .frame(maxWidth: .infinity)
+            }
             .sheet(isPresented: $showingAdd) {
                 AddEventView()
             }
