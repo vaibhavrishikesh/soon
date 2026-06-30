@@ -1,0 +1,61 @@
+# Soon — Roadmap & Feature Plan
+
+> Living plan for **Soon** (offline "days-until" countdown app). What's shipped,
+> what's next, and a pointer for each. Specs live in `docs/superpowers/specs/`.
+
+_Last updated: 2026-06-30_
+
+## ✅ Shipped
+
+- **Core app** — add / edit / delete countdowns (title, date, SF Symbol, color),
+  list sorted soonest-first, full-screen detail with a live D:H:M:S ticker +
+  animated gradient background. Fully offline (UserDefaults + Codable).
+- **WidgetKit widgets** — small + medium (home) + lock-screen
+  (rectangular / circular / inline). Auto-shows the soonest upcoming event.
+  Shared with the app via App Group `group.com.tranquilwaters.soon`.
+- **Lock-screen live timer** — rectangular widget ticks `{days}d HH:MM:SS` down to
+  the next midnight, live on the lock screen without the app running.
+  Spec: [`specs/2026-06-30-lock-screen-live-timer-design.md`](superpowers/specs/2026-06-30-lock-screen-live-timer-design.md)
+
+## 🔜 Next (prioritized)
+
+### 1. Notifications — "remind me" · _high value, low effort_
+Local notifications via `UNUserNotificationCenter`. Per-event toggle: remind the
+day before and/or on the day. No extra target. Permission prompt on first enable;
+reschedule on add/edit/delete. **Best first feature** — direct user value, cheap.
+
+### 2. Configurable widget (AppIntent) · _medium effort_
+Let the user pick *which* countdown a widget shows (not just the soonest), via
+`AppIntentConfiguration` + a `WidgetConfigurationIntent`. Builds on the existing
+widget; mostly additive. Pairs well with multiple widgets on one screen.
+
+### 3. iCloud sync · _medium effort_
+Events across the user's devices. Start simple with
+`NSUbiquitousKeyValueStore` (small data, key-value) or step up to CloudKit if we
+outgrow it. Requires iCloud capability + entitlement.
+
+### 4. Paywall / monetization · _depends on RevenueCat_
+Free tier: N countdowns (e.g. 3) + base themes. Premium: unlimited countdowns,
+premium gradient themes, maybe widget themes. RevenueCat for subscriptions + IAP.
+Aligns with the indie playbook (hard paywall, onboarding-driven). Gate after the
+app has real users / the above polish is in.
+
+### 5. Polish & delight · _ongoing_
+- App icon variants / alternate icons
+- More SF Symbols + color palettes in the picker
+- Haptics on add/complete, micro-interactions
+- "Share countdown as image" (great for the before/after / story-share loop)
+- Onboarding (sell the paywall later)
+
+## 🧭 Sequencing rationale
+
+Ship **Notifications** next (cheap, high retention), then **Configurable widget**
+(power-user delight on top of what we just built), then **iCloud** (multi-device
+trust) before **Paywall** (monetize once there's something worth paying for).
+Polish runs alongside throughout.
+
+## 📦 Parked / out of scope (for now)
+
+Live Activities (Dynamic Island) — only fits short-lived events, not multi-day
+countdowns. Apple Watch app. Android. These wait until the core loop + monetization
+are proven.
