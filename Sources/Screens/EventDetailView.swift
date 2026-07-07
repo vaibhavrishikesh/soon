@@ -1,4 +1,5 @@
 import SwiftUI
+import UIKit
 
 struct EventDetailView: View {
     @EnvironmentObject private var store: EventStore
@@ -8,6 +9,8 @@ struct EventDetailView: View {
     @State private var showingEdit = false
     @State private var confirmDelete = false
     @State private var drift = false        // drives the animated background
+    @State private var showConfetti = false
+    @State private var shareImage: UIImage?
 
     /// Always read the freshest copy from the store (so edits reflect live).
     private var current: CountdownEvent {
@@ -46,11 +49,14 @@ struct EventDetailView: View {
 
                 HStack(spacing: 12) {
                     actionButton("Edit", "pencil") { showingEdit = true }
+                    shareButton
                     actionButton("Delete", "trash") { confirmDelete = true }
                 }
                 .padding(.bottom, 24)
             }
             .padding(28)
+
+            if showConfetti { ConfettiView() }
         }
         .navigationBarTitleDisplayMode(.inline)
         .toolbarBackground(.hidden, for: .navigationBar)
@@ -59,7 +65,9 @@ struct EventDetailView: View {
             // Opening the detail during the final stretch counts as "seen it" —
             // calm the urgency animations for this event.
             if current.urgencyStage() >= .jump { store.acknowledgeUrgency(current) }
+            fireConfettiIfToday()
         }
+        .task { shareImage = renderShareCard() }
         .sheet(isPresented: $showingEdit) { AddEventView(editing: current) }
         .confirmationDialog("Delete this countdown?", isPresented: $confirmDelete, titleVisibility: .visible) {
             Button("Delete", role: .destructive) { store.delete(current); dismiss() }
@@ -170,6 +178,41 @@ struct EventDetailView: View {
                 .font(.headline).foregroundStyle(.white)
                 .frame(maxWidth: .infinity).padding(.vertical, 14)
                 .background(.white.opacity(0.18), in: RoundedRectangle(cornerRadius: 16))
+        }
+    }
+
+    // MARK: Share as image
+    @ViewBuilder
+    private var shareButton: some View {
+        if let ui = shareImage {
+            ShareLink(item: Image(uiImage: ui),
+                      preview: SharePreview(current.title, image: Image(uiImage: ui))) {
+                Label("Share", systemImage: "square.and.arrow.up")
+                    .font(.headline).foregroundStyle(.white)
+                    .frame(maxWidth: .infinity).padding(.vertical, 14)
+                    .background(.white.opacity(0.18), in: RoundedRectangle(cornerRadius: 16))
+            }
+        }
+    }
+
+    @MainActor
+    private func renderShareCard() -> UIImage? {
+        let renderer = ImageRenderer(content: ShareCardView(event: current))
+        renderer.proposedSize = ProposedViewSize(width: 1080, height: 1350)
+        renderer.scale = 1
+        return renderer.uiImage
+    }
+
+    // MARK: Confetti
+    private func fireConfettiIfToday() {
+        let now = Date()
+        let isToday = Calendar.current.isDate(current.date, inSameDayAs: now)
+        guard isToday, !showConfetti else { return }
+        UINotificationFeedbackGenerator().notificationOccurred(.success)
+        showConfetti = true
+        Task {
+            try? await Task.sleep(for: .seconds(3.5))
+            showConfetti = false
         }
     }
 }
