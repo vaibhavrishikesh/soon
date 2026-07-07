@@ -1,5 +1,28 @@
 import SwiftUI
 
+/// A soft "light sweep" running along a rounded-rect border — one bright head
+/// chasing its tail. `speed` = seconds per revolution.
+struct BorderSweep: View {
+    var cornerRadius: CGFloat = 24
+    var lineWidth: CGFloat = 2
+    var speed: Double = 6
+    var brightness: Double = 0.9
+
+    @State private var spin = false
+
+    var body: some View {
+        AngularGradient(
+            colors: [.clear, .clear, .clear, .white.opacity(brightness), .clear],
+            center: .center)
+            .scaleEffect(1.8)   // keep corners covered while rotating
+            .rotationEffect(.degrees(spin ? 360 : 0))
+            .animation(.linear(duration: speed).repeatForever(autoreverses: false), value: spin)
+            .mask(RoundedRectangle(cornerRadius: cornerRadius).strokeBorder(lineWidth: lineWidth))
+            .onAppear { spin = true }
+            .allowsHitTesting(false)
+    }
+}
+
 struct EventCard: View {
     let event: CountdownEvent
 
@@ -23,7 +46,9 @@ struct EventCard: View {
                         .font(.title3.bold()).lineLimit(1)
                 }
                 .foregroundStyle(.white)
-                Text(event.captionText)
+                Text(event.daysAway == 0
+                     ? "at \(event.date.formatted(date: .omitted, time: .shortened)) 🎉"
+                     : event.captionText)
                     .font(.caption).foregroundStyle(.white.opacity(0.85))
                 HStack(spacing: 5) {
                     Text(event.cardDateText)
@@ -43,6 +68,9 @@ struct EventCard: View {
             RoundedRectangle(cornerRadius: 24)
                 .stroke(.white.opacity(0.12), lineWidth: 1)
         )
+        .overlay {
+            if !event.isPast { BorderSweep() }
+        }
         .opacity(event.isPast ? 0.78 : 1)
         .shadow(color: event.colors[0].opacity(0.35), radius: 14, y: 8)
     }

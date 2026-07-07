@@ -14,8 +14,8 @@ struct EventDetailView: View {
         store.events.first { $0.id == event.id } ?? event
     }
 
-    /// Midnight of the event day — what we tick toward.
-    private var target: Date { Calendar.current.startOfDay(for: current.date) }
+    /// The exact moment of the event — what we tick toward.
+    private var target: Date { current.date }
 
     var body: some View {
         ZStack {
@@ -29,17 +29,7 @@ struct EventDetailView: View {
                     .font(.system(size: 52, weight: .semibold))
                     .foregroundStyle(.white.opacity(0.95))
 
-                if current.daysAway == 0 {
-                    Text("Today")
-                        .font(.system(size: 72, weight: .heavy, design: .rounded))
-                        .foregroundStyle(.white)
-                    Text("happening today 🎉")
-                        .font(.title3.weight(.semibold)).foregroundStyle(.white.opacity(0.9))
-                } else {
-                    liveTicker
-                    Text(current.isPast ? "time since" : "until the big day")
-                        .font(.subheadline.weight(.semibold)).foregroundStyle(.white.opacity(0.85))
-                }
+                countdownSection
 
                 Text(current.title)
                     .font(.largeTitle.bold()).foregroundStyle(.white)
@@ -73,16 +63,47 @@ struct EventDetailView: View {
         }
     }
 
-    // MARK: Live ticking D : H : M : S
-    private var liveTicker: some View {
+    // MARK: Countdown states (re-evaluated every second, so "it's time" flips live)
+    private var countdownSection: some View {
         TimelineView(.periodic(from: .now, by: 1)) { context in
-            let p = parts(now: context.date)
-            HStack(spacing: 10) {
-                unit(p.d, "DAYS")
-                unit(p.h, "HRS")
-                unit(p.m, "MIN")
-                unit(p.s, "SEC")
+            let now = context.date
+            let isEventToday = Calendar.current.isDate(current.date, inSameDayAs: now)
+            if target > now {
+                // Counting down — to the exact moment.
+                VStack(spacing: 14) {
+                    ticker(now: now)
+                    Text(isEventToday
+                         ? "today at \(current.date.formatted(date: .omitted, time: .shortened))"
+                         : "until the big day")
+                        .font(.subheadline.weight(.semibold)).foregroundStyle(.white.opacity(0.85))
+                }
+            } else if isEventToday {
+                // The moment arrived today.
+                VStack(spacing: 8) {
+                    Text("It's time!")
+                        .font(.system(size: 60, weight: .heavy, design: .rounded))
+                        .foregroundStyle(.white)
+                    Text("🎉 started at \(current.date.formatted(date: .omitted, time: .shortened))")
+                        .font(.title3.weight(.semibold)).foregroundStyle(.white.opacity(0.9))
+                }
+            } else {
+                // Past — count up since the moment.
+                VStack(spacing: 14) {
+                    ticker(now: now)
+                    Text("time since")
+                        .font(.subheadline.weight(.semibold)).foregroundStyle(.white.opacity(0.85))
+                }
             }
+        }
+    }
+
+    private func ticker(now: Date) -> some View {
+        let p = parts(now: now)
+        return HStack(spacing: 10) {
+            unit(p.d, "DAYS")
+            unit(p.h, "HRS")
+            unit(p.m, "MIN")
+            unit(p.s, "SEC")
         }
     }
 

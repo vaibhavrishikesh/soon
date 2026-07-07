@@ -32,7 +32,9 @@ struct AddEventView: View {
         _symbol = State(initialValue: editing?.symbol ?? "sparkles")
         _colorIndex = State(initialValue: editing?.colorIndex ?? 0)
         _remindDayBefore = State(initialValue: editing?.remindDayBefore ?? false)
-        _remindOnDay = State(initialValue: editing?.remindOnDay ?? false)
+        // New events default to an on-the-day reminder — a countdown you never
+        // hear from isn't doing its job (real users missed the toggle entirely).
+        _remindOnDay = State(initialValue: editing?.remindOnDay ?? true)
     }
 
     private let cols = [GridItem(.adaptive(minimum: 52), spacing: 12)]
@@ -177,14 +179,21 @@ struct AddEventView: View {
     private func save() {
         let trimmed = title.trimmingCharacters(in: .whitespaces)
         guard !trimmed.isEmpty else { return }
-        if var e = editing {
-            e.title = trimmed; e.date = date; e.symbol = symbol; e.colorIndex = colorIndex
-            e.remindDayBefore = remindDayBefore; e.remindOnDay = remindOnDay
-            store.update(e)
-        } else {
-            store.add(CountdownEvent(title: trimmed, date: date, symbol: symbol, colorIndex: colorIndex,
-                                     remindDayBefore: remindDayBefore, remindOnDay: remindOnDay))
+        Task {
+            // Reminders are on by default, so the user may never touch the toggle —
+            // make sure permission is requested before the first schedule.
+            if remindDayBefore || remindOnDay {
+                await NotificationManager.requestAuthorizationIfNeeded()
+            }
+            if var e = editing {
+                e.title = trimmed; e.date = date; e.symbol = symbol; e.colorIndex = colorIndex
+                e.remindDayBefore = remindDayBefore; e.remindOnDay = remindOnDay
+                store.update(e)
+            } else {
+                store.add(CountdownEvent(title: trimmed, date: date, symbol: symbol, colorIndex: colorIndex,
+                                         remindDayBefore: remindDayBefore, remindOnDay: remindOnDay))
+            }
+            dismiss()
         }
-        dismiss()
     }
 }
