@@ -13,6 +13,7 @@ struct AddEventView: View {
     @State private var colorIndex: Int
     @State private var remindDayBefore: Bool
     @State private var remindOnDay: Bool
+    @State private var borderGlow: Bool
     @State private var permissionDenied = false
     @FocusState private var titleFocused: Bool
 
@@ -35,6 +36,7 @@ struct AddEventView: View {
         // New events default to an on-the-day reminder — a countdown you never
         // hear from isn't doing its job (real users missed the toggle entirely).
         _remindOnDay = State(initialValue: editing?.remindOnDay ?? true)
+        _borderGlow = State(initialValue: editing?.borderGlow ?? false)
     }
 
     private let cols = [GridItem(.adaptive(minimum: 52), spacing: 12)]
@@ -63,6 +65,7 @@ struct AddEventView: View {
                         reminders
                         symbolPicker
                         colorPicker
+                        effects
                     }
                     .padding(18)
                     .padding(.bottom, 30)
@@ -102,8 +105,10 @@ struct AddEventView: View {
 
     private var preview: some View {
         EventCard(event: CountdownEvent(title: title.isEmpty ? "Your event" : title,
-                                        date: date, symbol: symbol, colorIndex: colorIndex))
+                                        date: date, symbol: symbol, colorIndex: colorIndex,
+                                        borderGlow: borderGlow))
             .allowsHitTesting(false)
+            .id(borderGlow)   // restart the sweep when toggled so the preview reflects it
     }
 
     private func field<Content: View>(_ label: String, @ViewBuilder _ content: () -> Content) -> some View {
@@ -149,6 +154,17 @@ struct AddEventView: View {
         }
     }
 
+    private var effects: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text("EFFECTS").font(.caption.bold()).foregroundStyle(Theme.textDim)
+            Toggle("✨ Animated glow border", isOn: $borderGlow)
+                .tint(Palette.colors(colorIndex)[0])
+                .foregroundStyle(.white)
+                .padding(14)
+                .background(Theme.card, in: RoundedRectangle(cornerRadius: 14))
+        }
+    }
+
     private var reminders: some View {
         VStack(alignment: .leading, spacing: 8) {
             Text("REMINDERS").font(.caption.bold()).foregroundStyle(Theme.textDim)
@@ -186,12 +202,15 @@ struct AddEventView: View {
                 await NotificationManager.requestAuthorizationIfNeeded()
             }
             if var e = editing {
+                if e.date != date { e.urgencyAcknowledged = false }   // new moment = new urgency
                 e.title = trimmed; e.date = date; e.symbol = symbol; e.colorIndex = colorIndex
                 e.remindDayBefore = remindDayBefore; e.remindOnDay = remindOnDay
+                e.borderGlow = borderGlow
                 store.update(e)
             } else {
                 store.add(CountdownEvent(title: trimmed, date: date, symbol: symbol, colorIndex: colorIndex,
-                                         remindDayBefore: remindDayBefore, remindOnDay: remindOnDay))
+                                         remindDayBefore: remindDayBefore, remindOnDay: remindOnDay,
+                                         borderGlow: borderGlow))
             }
             dismiss()
         }

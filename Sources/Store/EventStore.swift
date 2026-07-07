@@ -26,6 +26,13 @@ final class EventStore: ObservableObject {
         NotificationManager.cancel(e)
     }
 
+    /// The user calmed a final-stretch card — stop all urgency animation for it.
+    func acknowledgeUrgency(_ e: CountdownEvent) {
+        guard let i = events.firstIndex(where: { $0.id == e.id }),
+              !events[i].urgencyAcknowledged else { return }
+        events[i].urgencyAcknowledged = true; save()
+    }
+
     // MARK: Persistence (App Group — shared with the widget)
     private func load() {
         let stored = SoonData.loadEvents()

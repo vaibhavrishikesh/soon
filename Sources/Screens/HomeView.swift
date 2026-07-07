@@ -13,22 +13,17 @@ struct HomeView: View {
                     emptyState
                 } else {
                     ScrollView(showsIndicators: false) {
-                        LazyVStack(spacing: 16) {
-                            ForEach(store.sorted) { event in
-                                NavigationLink(value: event) {
-                                    EventCard(event: event)
-                                }
-                                .buttonStyle(.plain)
-                                .contextMenu {
-                                    Button(role: .destructive) {
-                                        store.delete(event)
-                                    } label: { Label("Delete", systemImage: "trash") }
+                        // Re-evaluate urgency stages every 15s so cards escalate live.
+                        TimelineView(.periodic(from: .now, by: 15)) { context in
+                            LazyVStack(spacing: 16) {
+                                ForEach(store.sorted) { event in
+                                    EventRow(event: event, now: context.date)
                                 }
                             }
+                            .padding(.horizontal, 18)
+                            .padding(.top, 6)
+                            .padding(.bottom, 90)
                         }
-                        .padding(.horizontal, 18)
-                        .padding(.top, 6)
-                        .padding(.bottom, 90)
                     }
                 }
             }
@@ -53,6 +48,22 @@ struct HomeView: View {
             }
         }
         .tint(.white)
+        // Stage 3: a final-minutes card breaks loose and roams the whole app
+        // (over every screen) until it's tapped.
+        .overlay { roamOverlay }
+    }
+
+    private var roamOverlay: some View {
+        TimelineView(.periodic(from: .now, by: 10)) { context in
+            if let loose = roamingEvent(asOf: context.date) {
+                RoamingCard(event: loose) { store.acknowledgeUrgency(loose) }
+                    .transition(.scale.combined(with: .opacity))
+            }
+        }
+    }
+
+    private func roamingEvent(asOf now: Date) -> CountdownEvent? {
+        store.events.first { $0.urgencyStage(asOf: now) == .roam }
     }
 
     private var addButton: some View {
@@ -87,5 +98,27 @@ struct HomeView: View {
             .padding(.top, 4)
         }
         .padding(40)
+    }
+}
+
+/// One home-list row — its own small view so the type-checker handles each row
+/// body separately (a `let` + modifier chain inside ForEach blew up inference).
+private struct EventRow: View {
+    @EnvironmentObject private var store: EventStore
+    let event: CountdownEvent
+    let now: Date
+
+    var body: some View {
+        let stage: CountdownEvent.UrgencyStage = event.urgencyStage(asOf: now)
+        NavigationLink(value: event) {
+            EventCard(event: event, urgency: stage)
+        }
+        .buttonStyle(.plain)
+        .urgency(stage)
+        .contextMenu {
+            Button(role: .destructive) {
+                store.delete(event)
+            } label: { Label("Delete", systemImage: "trash") }
+        }
     }
 }

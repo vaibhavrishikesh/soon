@@ -1,19 +1,22 @@
 import SwiftUI
 
-/// A soft "light sweep" running along a rounded-rect border — one bright head
+/// A colorful light ring running along a rounded-rect border — a rainbow comet
 /// chasing its tail. `speed` = seconds per revolution.
 struct BorderSweep: View {
     var cornerRadius: CGFloat = 24
-    var lineWidth: CGFloat = 2
+    var lineWidth: CGFloat = 2.5
     var speed: Double = 6
-    var brightness: Double = 0.9
 
     @State private var spin = false
 
+    // Stored with an explicit type — a bare 8-element Color literal inside the
+    // AngularGradient call sends the type-checker into a long inference spiral.
+    private static let sweepColors: [Color] = [
+        .clear, .cyan, .mint, .yellow, .orange, .pink, .purple, .clear,
+    ]
+
     var body: some View {
-        AngularGradient(
-            colors: [.clear, .clear, .clear, .white.opacity(brightness), .clear],
-            center: .center)
+        AngularGradient(colors: Self.sweepColors, center: .center)
             .scaleEffect(1.8)   // keep corners covered while rotating
             .rotationEffect(.degrees(spin ? 360 : 0))
             .animation(.linear(duration: speed).repeatForever(autoreverses: false), value: spin)
@@ -25,6 +28,7 @@ struct BorderSweep: View {
 
 struct EventCard: View {
     let event: CountdownEvent
+    var urgency: CountdownEvent.UrgencyStage = .none
 
     var body: some View {
         HStack(spacing: 16) {
@@ -69,7 +73,10 @@ struct EventCard: View {
                 .stroke(.white.opacity(0.12), lineWidth: 1)
         )
         .overlay {
-            if !event.isPast { BorderSweep() }
+            // Opt-in per event; urgency forces it on (and races) in the final stretch.
+            if !event.isPast && (event.borderGlow || urgency >= .pulse) {
+                BorderSweep(speed: urgency >= .pulse ? 1.5 : 6)
+            }
         }
         .opacity(event.isPast ? 0.78 : 1)
         .shadow(color: event.colors[0].opacity(0.35), radius: 14, y: 8)

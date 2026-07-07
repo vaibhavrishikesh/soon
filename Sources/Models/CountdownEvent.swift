@@ -8,17 +8,23 @@ struct CountdownEvent: Identifiable, Codable, Hashable {
     var colorIndex: Int     // index into Palette.gradients
     var remindDayBefore: Bool = false
     var remindOnDay: Bool = false
+    var urgencyAcknowledged: Bool = false   // user has "calmed" the final-stretch card
+    var borderGlow: Bool = false            // opt-in animated glow on this card
 
     init(id: UUID = UUID(), title: String, date: Date, symbol: String, colorIndex: Int,
-         remindDayBefore: Bool = false, remindOnDay: Bool = false) {
+         remindDayBefore: Bool = false, remindOnDay: Bool = false,
+         urgencyAcknowledged: Bool = false, borderGlow: Bool = false) {
         self.id = id; self.title = title; self.date = date; self.symbol = symbol
         self.colorIndex = colorIndex
         self.remindDayBefore = remindDayBefore; self.remindOnDay = remindOnDay
+        self.urgencyAcknowledged = urgencyAcknowledged
+        self.borderGlow = borderGlow
     }
 
-    // Migration-safe decode: events saved before reminders existed lack these keys.
+    // Migration-safe decode: events saved before these fields existed lack the keys.
     enum CodingKeys: String, CodingKey {
-        case id, title, date, symbol, colorIndex, remindDayBefore, remindOnDay
+        case id, title, date, symbol, colorIndex, remindDayBefore, remindOnDay,
+             urgencyAcknowledged, borderGlow
     }
     init(from decoder: Decoder) throws {
         let c = try decoder.container(keyedBy: CodingKeys.self)
@@ -29,6 +35,24 @@ struct CountdownEvent: Identifiable, Codable, Hashable {
         colorIndex = try c.decode(Int.self, forKey: .colorIndex)
         remindDayBefore = try c.decodeIfPresent(Bool.self, forKey: .remindDayBefore) ?? false
         remindOnDay     = try c.decodeIfPresent(Bool.self, forKey: .remindOnDay) ?? false
+        urgencyAcknowledged = try c.decodeIfPresent(Bool.self, forKey: .urgencyAcknowledged) ?? false
+        borderGlow = try c.decodeIfPresent(Bool.self, forKey: .borderGlow) ?? false
+    }
+
+    // MARK: Urgency — the final stretch, escalating until acknowledged
+    enum UrgencyStage: Int, Comparable {
+        case none = 0, pulse, jump, roam
+        static func < (a: Self, b: Self) -> Bool { a.rawValue < b.rawValue }
+    }
+
+    /// How loudly this event should be demanding attention right now.
+    func urgencyStage(asOf now: Date = Date()) -> UrgencyStage {
+        guard !urgencyAcknowledged, date > now else { return .none }
+        let minutes = date.timeIntervalSince(now) / 60
+        if minutes <= 3  { return .roam }
+        if minutes <= 10 { return .jump }
+        if minutes <= 60 { return .pulse }
+        return .none
     }
 
     var gradient: LinearGradient { Palette.gradient(colorIndex) }

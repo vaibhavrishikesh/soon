@@ -37,9 +37,7 @@ struct EventDetailView: View {
                 Text(current.dateTimeText)
                     .font(.subheadline).foregroundStyle(.white.opacity(0.8))
                 if current.hasReminder {
-                    Label(current.remindDayBefore && current.remindOnDay ? "Day before & on the day"
-                          : current.remindDayBefore ? "Reminder: day before" : "Reminder: on the day",
-                          systemImage: "bell.fill")
+                    Label(reminderText, systemImage: "bell.fill")
                         .font(.caption).foregroundStyle(.white.opacity(0.85))
                         .padding(.top, 2)
                 }
@@ -56,43 +54,60 @@ struct EventDetailView: View {
         }
         .navigationBarTitleDisplayMode(.inline)
         .toolbarBackground(.hidden, for: .navigationBar)
-        .onAppear { withAnimation(.easeInOut(duration: 7).repeatForever(autoreverses: true)) { drift = true } }
+        .onAppear {
+            withAnimation(.easeInOut(duration: 7).repeatForever(autoreverses: true)) { drift = true }
+            // Opening the detail during the final stretch counts as "seen it" —
+            // calm the urgency animations for this event.
+            if current.urgencyStage() >= .jump { store.acknowledgeUrgency(current) }
+        }
         .sheet(isPresented: $showingEdit) { AddEventView(editing: current) }
         .confirmationDialog("Delete this countdown?", isPresented: $confirmDelete, titleVisibility: .visible) {
             Button("Delete", role: .destructive) { store.delete(current); dismiss() }
         }
     }
 
+    private var reminderText: String {
+        if current.remindDayBefore && current.remindOnDay { return "Day before & on the day" }
+        if current.remindDayBefore { return "Reminder: day before" }
+        return "Reminder: on the day"
+    }
+
+    private var eventTimeText: String {
+        current.date.formatted(date: .omitted, time: .shortened)
+    }
+
     // MARK: Countdown states (re-evaluated every second, so "it's time" flips live)
     private var countdownSection: some View {
         TimelineView(.periodic(from: .now, by: 1)) { context in
-            let now = context.date
-            let isEventToday = Calendar.current.isDate(current.date, inSameDayAs: now)
-            if target > now {
-                // Counting down — to the exact moment.
-                VStack(spacing: 14) {
-                    ticker(now: now)
-                    Text(isEventToday
-                         ? "today at \(current.date.formatted(date: .omitted, time: .shortened))"
-                         : "until the big day")
-                        .font(.subheadline.weight(.semibold)).foregroundStyle(.white.opacity(0.85))
-                }
-            } else if isEventToday {
-                // The moment arrived today.
-                VStack(spacing: 8) {
-                    Text("It's time!")
-                        .font(.system(size: 60, weight: .heavy, design: .rounded))
-                        .foregroundStyle(.white)
-                    Text("🎉 started at \(current.date.formatted(date: .omitted, time: .shortened))")
-                        .font(.title3.weight(.semibold)).foregroundStyle(.white.opacity(0.9))
-                }
-            } else {
-                // Past — count up since the moment.
-                VStack(spacing: 14) {
-                    ticker(now: now)
-                    Text("time since")
-                        .font(.subheadline.weight(.semibold)).foregroundStyle(.white.opacity(0.85))
-                }
+            countdownContent(now: context.date)
+        }
+    }
+
+    @ViewBuilder
+    private func countdownContent(now: Date) -> some View {
+        let isEventToday = Calendar.current.isDate(current.date, inSameDayAs: now)
+        if target > now {
+            // Counting down — to the exact moment.
+            VStack(spacing: 14) {
+                ticker(now: now)
+                Text(isEventToday ? "today at \(eventTimeText)" : "until the big day")
+                    .font(.subheadline.weight(.semibold)).foregroundStyle(.white.opacity(0.85))
+            }
+        } else if isEventToday {
+            // The moment arrived today.
+            VStack(spacing: 8) {
+                Text("It's time!")
+                    .font(.system(size: 60, weight: .heavy, design: .rounded))
+                    .foregroundStyle(.white)
+                Text("🎉 started at \(eventTimeText)")
+                    .font(.title3.weight(.semibold)).foregroundStyle(.white.opacity(0.9))
+            }
+        } else {
+            // Past — count up since the moment.
+            VStack(spacing: 14) {
+                ticker(now: now)
+                Text("time since")
+                    .font(.subheadline.weight(.semibold)).foregroundStyle(.white.opacity(0.85))
             }
         }
     }
