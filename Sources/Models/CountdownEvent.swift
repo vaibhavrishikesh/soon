@@ -83,6 +83,12 @@ struct CountdownEvent: Identifiable, Codable, Hashable {
         dateText + " · " + date.formatted(date: .omitted, time: .shortened)
     }
 
+    /// Compact date + time for list cards, e.g. "Sun, 12 Jul · 9:47 AM".
+    var cardDateText: String {
+        date.formatted(.dateTime.weekday(.abbreviated).day().month(.abbreviated))
+            + " · " + date.formatted(date: .omitted, time: .shortened)
+    }
+
     var hasReminder: Bool { remindDayBefore || remindOnDay }
 
     // MARK: Sample seed (shared by the app's first-run and the widget placeholder)

@@ -25,8 +25,13 @@ struct EventCard: View {
                 .foregroundStyle(.white)
                 Text(event.captionText)
                     .font(.caption).foregroundStyle(.white.opacity(0.85))
-                Text(event.dateText)
-                    .font(.caption2).foregroundStyle(.white.opacity(0.7))
+                HStack(spacing: 5) {
+                    Text(event.cardDateText)
+                    if event.hasReminder {
+                        Image(systemName: "bell.fill").font(.system(size: 9))
+                    }
+                }
+                .font(.caption2).foregroundStyle(.white.opacity(0.7))
             }
             Spacer()
             Image(systemName: "chevron.right")

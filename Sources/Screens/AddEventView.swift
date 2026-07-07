@@ -58,9 +58,9 @@ struct AddEventView: View {
                                 .labelsHidden().datePickerStyle(.compact)
                                 .tint(Palette.colors(colorIndex)[0])
                         }
+                        reminders
                         symbolPicker
                         colorPicker
-                        reminders
                     }
                     .padding(18)
                     .padding(.bottom, 30)
