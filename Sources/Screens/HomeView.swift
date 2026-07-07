@@ -3,6 +3,8 @@ import SwiftUI
 struct HomeView: View {
     @EnvironmentObject private var store: EventStore
     @State private var showingAdd = false
+    @State private var showingWidgetGuide = false
+    @AppStorage("widgetPromoDismissed") private var widgetPromoDismissed = false
 
     var body: some View {
         NavigationStack {
@@ -16,6 +18,11 @@ struct HomeView: View {
                         // Re-evaluate urgency stages every 15s so cards escalate live.
                         TimelineView(.periodic(from: .now, by: 15)) { context in
                             LazyVStack(spacing: 16) {
+                                if !widgetPromoDismissed {
+                                    WidgetPromoCard(
+                                        onOpen: { showingWidgetGuide = true },
+                                        onDismiss: { withAnimation { widgetPromoDismissed = true } })
+                                }
                                 ForEach(store.sorted) { event in
                                     EventRow(event: event, now: context.date)
                                 }
@@ -33,6 +40,12 @@ struct HomeView: View {
             .navigationDestination(for: CountdownEvent.self) { EventDetailView(event: $0) }
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
+                    Button { showingWidgetGuide = true } label: {
+                        Image(systemName: "square.grid.2x2")
+                            .font(.subheadline.bold())
+                    }
+                }
+                ToolbarItem(placement: .topBarTrailing) {
                     Button { showingAdd = true } label: {
                         Image(systemName: "plus")
                             .font(.headline.bold())
@@ -47,6 +60,9 @@ struct HomeView: View {
             }
             .sheet(isPresented: $showingAdd) {
                 AddEventView()
+            }
+            .sheet(isPresented: $showingWidgetGuide) {
+                WidgetGuideView(sampleEvent: store.sorted.first)
             }
         }
         .tint(.white)
