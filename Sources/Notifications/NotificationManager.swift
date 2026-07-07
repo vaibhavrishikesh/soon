@@ -68,3 +68,13 @@ enum NotificationManager {
         center.add(UNNotificationRequest(identifier: id, content: content, trigger: trigger))
     }
 }
+
+/// Shows local notifications even while the app is in the foreground — iOS
+/// suppresses them by default, which reads as "notifications not working".
+final class NotificationDelegate: NSObject, UNUserNotificationCenterDelegate {
+    func userNotificationCenter(_ center: UNUserNotificationCenter,
+                                willPresent notification: UNNotification) async
+        -> UNNotificationPresentationOptions {
+        [.banner, .sound, .list]
+    }
+}

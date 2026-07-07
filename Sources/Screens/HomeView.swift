@@ -28,6 +28,8 @@ struct HomeView: View {
                 }
             }
             .navigationTitle("Soon")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar { ToolbarItem(placement: .principal) { SoonLogo() } }
             .navigationDestination(for: CountdownEvent.self) { EventDetailView(event: $0) }
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
