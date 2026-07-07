@@ -57,8 +57,7 @@ struct RoamingCard: View {
     @State private var pos = CGPoint(x: 160, y: 200)
     @State private var pop = false        // spring entrance
     @State private var breathe = false    // continuous attention pulse
-    @State private var wiggle = false     // frantic "look at me!" shake
-    private let driftTimer = Timer.publish(every: 1.0, on: .main, in: .common).autoconnect()
+    private let driftTimer = Timer.publish(every: 1.7, on: .main, in: .common).autoconnect()
 
     var body: some View {
         GeometryReader { geo in
@@ -82,21 +81,17 @@ struct RoamingCard: View {
                 .overlay(Capsule().stroke(.white.opacity(0.35), lineWidth: 1))
                 .overlay(BorderSweep(cornerRadius: 40, lineWidth: 2.5, speed: 1.0))
                 .shadow(color: event.colors[0].opacity(0.7), radius: 20, y: 8)
-                .scaleEffect(pop ? 1.0 : 0.3)               // entrance
-                .scaleEffect(breathe ? 1.09 : 0.97)         // urgent throb
-                .rotationEffect(.degrees(wiggle ? 4 : -4))  // frantic waving
+                .scaleEffect(pop ? 1.0 : 0.3)        // entrance
+                .scaleEffect(breathe ? 1.05 : 1.0)   // breathing pulse
                 .opacity(pop ? 1 : 0)
             }
             .position(pos)
             .onAppear {
                 pos = CGPoint(x: geo.size.width / 2, y: 170)
                 UINotificationFeedbackGenerator().notificationOccurred(.warning)
-                withAnimation(.spring(response: 0.32, dampingFraction: 0.5)) { pop = true }
-                withAnimation(.easeInOut(duration: 0.4).repeatForever(autoreverses: true).delay(0.3)) {
+                withAnimation(.spring(response: 0.5, dampingFraction: 0.55)) { pop = true }
+                withAnimation(.easeInOut(duration: 0.9).repeatForever(autoreverses: true).delay(0.55)) {
                     breathe = true
-                }
-                withAnimation(.easeInOut(duration: 0.13).repeatForever(autoreverses: true)) {
-                    wiggle = true
                 }
             }
             .onReceive(driftTimer) { _ in
@@ -104,7 +99,7 @@ struct RoamingCard: View {
                 let maxX = max(minX + 20, geo.size.width - 100)
                 let minY: CGFloat = 140
                 let maxY = max(minY + 40, geo.size.height - 180)
-                withAnimation(.spring(response: 0.5, dampingFraction: 0.6)) {
+                withAnimation(.easeInOut(duration: 1.3)) {
                     pos = CGPoint(x: .random(in: minX...maxX), y: .random(in: minY...maxY))
                 }
             }
