@@ -22,10 +22,13 @@ struct SoonLiveActivity: Widget {
                         .foregroundStyle(.white)
                 }
                 DynamicIslandExpandedRegion(.bottom) {
-                    ActivityTicker(eventDate: context.state.eventDate)
-                        .font(.system(size: 38, weight: .heavy, design: .rounded).monospacedDigit())
-                        .foregroundStyle(.white)
-                        .frame(maxWidth: .infinity, alignment: .center)
+                    HStack(spacing: 12) {
+                        ActivityTicker(eventDate: context.state.eventDate)
+                            .font(.system(size: 36, weight: .heavy, design: .rounded).monospacedDigit())
+                            .foregroundStyle(.white)
+                            .frame(maxWidth: .infinity, alignment: .center)
+                        DismissButton(eventID: context.attributes.eventID)
+                    }
                 }
             } compactLeading: {
                 Image(systemName: context.attributes.symbol)
@@ -40,6 +43,22 @@ struct SoonLiveActivity: Widget {
                     .foregroundStyle(Palette.colors(context.attributes.colorIndex)[0])
             }
         }
+    }
+}
+
+/// Ends the activity from inside the island/banner (and remembers the choice).
+private struct DismissButton: View {
+    let eventID: UUID
+
+    var body: some View {
+        Button(intent: EndSoonActivityIntent(eventID: eventID.uuidString)) {
+            Image(systemName: "xmark")
+                .font(.caption.bold())
+                .foregroundStyle(.white.opacity(0.9))
+                .padding(10)
+                .background(.white.opacity(0.18), in: Circle())
+        }
+        .buttonStyle(.plain)
     }
 }
 
@@ -72,6 +91,7 @@ private struct LockBanner: View {
             Spacer()
             ActivityTicker(eventDate: context.state.eventDate)
                 .font(.system(size: 30, weight: .heavy, design: .rounded).monospacedDigit())
+            DismissButton(eventID: context.attributes.eventID)
         }
         .foregroundStyle(.white)
         .padding(18)

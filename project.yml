@@ -56,6 +56,7 @@ targets:
       - path: SoonWidget
       - path: Sources/Models/CountdownEvent.swift
       - path: Sources/Models/SoonActivityAttributes.swift
+      - path: Sources/Models/LiveActivityControl.swift
       - path: Sources/Theme.swift
       - path: Sources/Store/SharedData.swift
     settings:

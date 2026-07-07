@@ -16,6 +16,12 @@ enum LiveActivityManager {
             .min { $0.date < $1.date }
 
         Task {
+            // Respect a lock-screen swipe-dismissal: remember it, then let go.
+            for activity in Activity<SoonActivityAttributes>.activities
+            where activity.activityState == .dismissed {
+                LiveActivityDismissals.record(eventID: activity.attributes.eventID,
+                                              eventDate: activity.content.state.eventDate)
+            }
             // End anything stale (wrong event, changed date, or moment passed).
             for activity in Activity<SoonActivityAttributes>.activities {
                 let matches = candidate.map {
@@ -27,6 +33,10 @@ enum LiveActivityManager {
                 }
             }
             guard let event = candidate else { return }
+            // The user closed this one — don't restart it (a new date re-allows).
+            if LiveActivityDismissals.isDismissed(eventID: event.id, eventDate: event.date) {
+                return
+            }
             let alreadyRunning = Activity<SoonActivityAttributes>.activities.contains {
                 $0.attributes.eventID == event.id
                     && $0.content.state.eventDate == event.date
