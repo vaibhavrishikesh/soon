@@ -15,17 +15,16 @@ enum Theme {
     static let card    = Color(hex: 0x191921)
     static let textDim = Color.white.opacity(0.55)
 
-    /// Rich app background — soft indigo glow up top fading into near-black,
-    /// so empty space doesn't read as a flat black void.
+    /// Medium "dusk" app background — muted purple (not black, not white) with
+    /// soft indigo/pink glows so the colorful cards pop.
     static var background: some View {
         ZStack {
-            bg
-            LinearGradient(colors: [Color(hex: 0x1B1733), bg],
-                           startPoint: .top, endPoint: .center)
-            RadialGradient(colors: [Color(hex: 0x6D5BFF).opacity(0.22), .clear],
-                           center: .topLeading, startRadius: 0, endRadius: 520)
-            RadialGradient(colors: [Color(hex: 0xEC38BC).opacity(0.12), .clear],
-                           center: .bottomTrailing, startRadius: 0, endRadius: 460)
+            LinearGradient(colors: [Color(hex: 0x514A74), Color(hex: 0x353051)],
+                           startPoint: .top, endPoint: .bottom)
+            RadialGradient(colors: [Color(hex: 0x8A78FF).opacity(0.28), .clear],
+                           center: .topLeading, startRadius: 0, endRadius: 560)
+            RadialGradient(colors: [Color(hex: 0xF06BD0).opacity(0.16), .clear],
+                           center: .bottomTrailing, startRadius: 0, endRadius: 480)
         }
         .ignoresSafeArea()
     }

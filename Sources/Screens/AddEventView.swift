@@ -30,8 +30,8 @@ struct AddEventView: View {
         self.editing = editing
         let presets = Self.makePresets()
         self.datePresets = presets
-        let defaultDate = presets.first { $0.label == "Next Week" }?.target
-            ?? Calendar.current.date(byAdding: .day, value: 7, to: Date())!
+        let defaultDate = presets.first { $0.label == "1 hour" }?.target
+            ?? Calendar.current.date(byAdding: .hour, value: 1, to: Date())!
         _title = State(initialValue: editing?.title ?? "")
         _date = State(initialValue: editing?.date ?? defaultDate)
         _symbol = State(initialValue: editing?.symbol ?? "sparkles")
@@ -129,25 +129,23 @@ struct AddEventView: View {
     private static func makePresets() -> [DatePreset] {
         let cal = Calendar.current
         let now = Date()
-        func add(_ c: Calendar.Component, _ n: Int) -> Date { cal.date(byAdding: c, value: n, to: now) ?? now }
+        func mins(_ n: Int) -> Date { cal.date(byAdding: .minute, value: n, to: now) ?? now }
+        func hrs(_ n: Int)  -> Date { cal.date(byAdding: .hour,   value: n, to: now) ?? now }
+        func days(_ n: Int) -> Date { cal.date(byAdding: .day,    value: n, to: now) ?? now }
         let eightToday = cal.date(bySettingHour: 20, minute: 0, second: 0, of: now) ?? now
-        let tonight = eightToday.timeIntervalSince(now) > 1800
-            ? eightToday
-            : (cal.date(bySettingHour: 20, minute: 0, second: 0, of: add(.day, 1)) ?? add(.day, 1))
+        let tonight = eightToday.timeIntervalSince(now) > 1800 ? eightToday : hrs(3)
         let saturday = cal.nextDate(after: now, matching: DateComponents(hour: 12, weekday: 7),
-                                    matchingPolicy: .nextTime) ?? add(.day, 3)
-        let newYear = cal.nextDate(after: now, matching: DateComponents(month: 1, day: 1, hour: 0),
-                                   matchingPolicy: .nextTime) ?? add(.year, 1)
+                                    matchingPolicy: .nextTime) ?? days(3)
+        // Quick, near-term taps. Anything longer (a year, 10 years…) → custom picker.
         return [
-            DatePreset(label: "Tonight",      target: tonight),
-            DatePreset(label: "Tomorrow",     target: add(.day, 1)),
-            DatePreset(label: "This Weekend", target: saturday),
-            DatePreset(label: "Next Week",    target: add(.day, 7)),
-            DatePreset(label: "2 Weeks",      target: add(.day, 14)),
-            DatePreset(label: "1 Month",      target: add(.month, 1)),
-            DatePreset(label: "3 Months",     target: add(.month, 3)),
-            DatePreset(label: "6 Months",     target: add(.month, 6)),
-            DatePreset(label: "New Year",     target: newYear),
+            DatePreset(label: "5 min",     target: mins(5)),
+            DatePreset(label: "15 min",    target: mins(15)),
+            DatePreset(label: "30 min",    target: mins(30)),
+            DatePreset(label: "1 hour",    target: hrs(1)),
+            DatePreset(label: "Tonight",   target: tonight),
+            DatePreset(label: "Tomorrow",  target: days(1)),
+            DatePreset(label: "Weekend",   target: saturday),
+            DatePreset(label: "Next Week", target: days(7)),
         ]
     }
 
