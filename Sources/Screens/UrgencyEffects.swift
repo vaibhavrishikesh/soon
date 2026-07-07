@@ -3,6 +3,8 @@ import UIKit
 
 /// Escalating attention animation for a card in its final stretch:
 /// pulse (heartbeat scale) → jump (periodic spring bounce + haptic).
+/// Crucially it STOPS the moment the stage drops (acknowledged tap, or the
+/// event's time passing), so a card never keeps twitching after it's over.
 struct UrgencyEffect: ViewModifier {
     let stage: CountdownEvent.UrgencyStage
 
@@ -12,15 +14,11 @@ struct UrgencyEffect: ViewModifier {
 
     func body(content: Content) -> some View {
         content
-            .scaleEffect(stage >= .pulse && pulsing ? 1.02 : 1.0)
+            .scaleEffect(pulsing ? 1.03 : 1.0)
             .offset(y: jumping ? -14 : 0)
             .rotationEffect(.degrees(jumping ? 2 : 0))
-            .onAppear {
-                guard stage >= .pulse else { return }
-                withAnimation(.easeInOut(duration: 0.65).repeatForever(autoreverses: true)) {
-                    pulsing = true
-                }
-            }
+            .onAppear { syncPulse() }
+            .onChange(of: stage) { _, _ in syncPulse() }
             .onReceive(jumpTimer) { _ in
                 guard stage >= .jump else { return }
                 UIImpactFeedbackGenerator(style: .heavy).impactOccurred()
@@ -30,6 +28,18 @@ struct UrgencyEffect: ViewModifier {
                 }
             }
     }
+
+    /// Start the repeating pulse when urgent; hard-stop it otherwise.
+    private func syncPulse() {
+        if stage >= .pulse {
+            guard !pulsing else { return }
+            withAnimation(.easeInOut(duration: 0.65).repeatForever(autoreverses: true)) { pulsing = true }
+        } else if pulsing {
+            // Non-repeating animation cancels the repeatForever and settles at 1.0.
+            withAnimation(.easeOut(duration: 0.2)) { pulsing = false }
+            jumping = false
+        }
+    }
 }
 
 extension View {
@@ -38,49 +48,60 @@ extension View {
     }
 }
 
-/// Stage 3: the card breaks loose — a compact version drifts around the whole
-/// app, ticking, until the user taps it (acknowledge).
+/// Stage 3: the card breaks loose — a bold pill pops in with a spring, breathes
+/// for attention, and drifts around the whole app until the user taps it.
 struct RoamingCard: View {
     let event: CountdownEvent
     let acknowledge: () -> Void
 
-    @State private var pos = CGPoint(x: 140, y: 220)
-    private let driftTimer = Timer.publish(every: 1.6, on: .main, in: .common).autoconnect()
+    @State private var pos = CGPoint(x: 160, y: 200)
+    @State private var pop = false        // spring entrance
+    @State private var breathe = false    // continuous attention pulse
+    private let driftTimer = Timer.publish(every: 1.7, on: .main, in: .common).autoconnect()
 
     var body: some View {
         GeometryReader { geo in
             Button(action: acknowledge) {
-                HStack(spacing: 10) {
-                    Image(systemName: event.symbol).font(.headline)
-                    VStack(alignment: .leading, spacing: 1) {
+                HStack(spacing: 11) {
+                    Image(systemName: event.symbol)
+                        .font(.title3.bold())
+                    VStack(alignment: .leading, spacing: 2) {
                         Text(event.title).font(.subheadline.bold()).lineLimit(1)
                         if event.date > Date() {
                             Text(timerInterval: Date()...event.date, countsDown: true)
-                                .font(.caption.monospacedDigit().bold())
+                                .font(.headline.monospacedDigit().bold())
                         }
-                        Text("It's almost time — tap me!")
-                            .font(.system(size: 9, weight: .semibold)).opacity(0.85)
+                        Text("almost time — tap me! 👆")
+                            .font(.system(size: 10, weight: .semibold)).opacity(0.9)
                     }
                 }
                 .foregroundStyle(.white)
-                .padding(.vertical, 10).padding(.horizontal, 14)
+                .padding(.vertical, 12).padding(.horizontal, 18)
                 .background(event.gradient, in: Capsule())
-                .overlay(BorderSweep(cornerRadius: 26, lineWidth: 2, speed: 1.2))
-                .shadow(color: event.colors[0].opacity(0.6), radius: 14, y: 6)
+                .overlay(Capsule().stroke(.white.opacity(0.35), lineWidth: 1))
+                .overlay(BorderSweep(cornerRadius: 40, lineWidth: 2.5, speed: 1.0))
+                .shadow(color: event.colors[0].opacity(0.7), radius: 20, y: 8)
+                .scaleEffect(pop ? 1.0 : 0.3)        // entrance
+                .scaleEffect(breathe ? 1.05 : 1.0)   // breathing pulse
+                .opacity(pop ? 1 : 0)
             }
             .position(pos)
             .onAppear {
-                pos = CGPoint(x: geo.size.width / 2, y: 160)
+                pos = CGPoint(x: geo.size.width / 2, y: 170)
                 UINotificationFeedbackGenerator().notificationOccurred(.warning)
+                withAnimation(.spring(response: 0.5, dampingFraction: 0.55)) { pop = true }
+                withAnimation(.easeInOut(duration: 0.9).repeatForever(autoreverses: true).delay(0.55)) {
+                    breathe = true
+                }
             }
             .onReceive(driftTimer) { _ in
-                let minX: CGFloat = 90
-                let maxX: CGFloat = max(minX + 20, geo.size.width - 90)
-                let minY: CGFloat = 130
-                let maxY: CGFloat = max(minY + 40, geo.size.height - 170)
-                let x = CGFloat.random(in: minX...maxX)
-                let y = CGFloat.random(in: minY...maxY)
-                withAnimation(.easeInOut(duration: 1.3)) { pos = CGPoint(x: x, y: y) }
+                let minX: CGFloat = 100
+                let maxX = max(minX + 20, geo.size.width - 100)
+                let minY: CGFloat = 140
+                let maxY = max(minY + 40, geo.size.height - 180)
+                withAnimation(.easeInOut(duration: 1.3)) {
+                    pos = CGPoint(x: .random(in: minX...maxX), y: .random(in: minY...maxY))
+                }
             }
         }
     }
