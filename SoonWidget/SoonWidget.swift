@@ -243,5 +243,8 @@ struct SoonWidget: Widget {
 
 @main
 struct SoonWidgetBundle: WidgetBundle {
-    var body: some Widget { SoonWidget() }
+    var body: some Widget {
+        SoonWidget()
+        SoonLiveActivity()
+    }
 }

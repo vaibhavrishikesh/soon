@@ -24,6 +24,8 @@
 	<string>ca-app-pub-4765907187067298~5073486989</string>
 	<key>ITSAppUsesNonExemptEncryption</key>
 	<false/>
+	<key>NSSupportsLiveActivities</key>
+	<true/>
 	<key>NSUserTrackingUsageDescription</key>
 	<string>Used to show you more relevant ads.</string>
 	<key>UIApplicationSupportsIndirectInputEvents</key>

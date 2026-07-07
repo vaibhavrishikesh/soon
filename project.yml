@@ -42,6 +42,7 @@ targets:
         GADApplicationIdentifier: ca-app-pub-4765907187067298~5073486989
         NSUserTrackingUsageDescription: Used to show you more relevant ads.
         ITSAppUsesNonExemptEncryption: false
+        NSSupportsLiveActivities: true
     entitlements:
       path: Soon.entitlements
       properties:
@@ -54,6 +55,7 @@ targets:
     sources:
       - path: SoonWidget
       - path: Sources/Models/CountdownEvent.swift
+      - path: Sources/Models/SoonActivityAttributes.swift
       - path: Sources/Theme.swift
       - path: Sources/Store/SharedData.swift
     settings:

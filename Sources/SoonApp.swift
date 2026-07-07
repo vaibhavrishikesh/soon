@@ -25,6 +25,8 @@ struct SoonApp: App {
                     // Ask for notification permission up front so reminders can fire.
                     await NotificationManager.requestAuthorizationIfNeeded()
                     NotificationManager.rescheduleAll(store.events)
+                    // Live Activity for the soonest event in its final 24h.
+                    LiveActivityManager.sync(store.events)
                 }
         }
     }

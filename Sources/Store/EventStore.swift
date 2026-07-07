@@ -48,5 +48,6 @@ final class EventStore: ObservableObject {
     private func save() {
         SoonData.saveEvents(events)
         WidgetCenter.shared.reloadAllTimelines()
+        LiveActivityManager.sync(events)
     }
 }
