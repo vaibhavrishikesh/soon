@@ -62,9 +62,9 @@ struct EventDetailView: View {
         .toolbarBackground(.hidden, for: .navigationBar)
         .onAppear {
             withAnimation(.easeInOut(duration: 7).repeatForever(autoreverses: true)) { drift = true }
-            // Opening the detail during the final stretch counts as "seen it" —
-            // calm the urgency animations for this event.
-            if current.urgencyStage() >= .jump { store.acknowledgeUrgency(current) }
+            // Opening the detail counts as "seen it" — calm ALL urgency animations
+            // (pulse/jump/roam) for this event once the user taps in.
+            if current.urgencyStage() > .none { store.acknowledgeUrgency(current) }
             fireConfettiIfToday()
         }
         .task { shareImage = renderShareCard() }

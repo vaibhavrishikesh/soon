@@ -45,7 +45,7 @@ struct RoamingCard: View {
     let acknowledge: () -> Void
 
     @State private var pos = CGPoint(x: 140, y: 220)
-    private let driftTimer = Timer.publish(every: 2.4, on: .main, in: .common).autoconnect()
+    private let driftTimer = Timer.publish(every: 1.6, on: .main, in: .common).autoconnect()
 
     var body: some View {
         GeometryReader { geo in
@@ -80,7 +80,7 @@ struct RoamingCard: View {
                 let maxY: CGFloat = max(minY + 40, geo.size.height - 170)
                 let x = CGFloat.random(in: minX...maxX)
                 let y = CGFloat.random(in: minY...maxY)
-                withAnimation(.easeInOut(duration: 2.2)) { pos = CGPoint(x: x, y: y) }
+                withAnimation(.easeInOut(duration: 1.3)) { pos = CGPoint(x: x, y: y) }
             }
         }
     }

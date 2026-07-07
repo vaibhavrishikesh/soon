@@ -13,8 +13,11 @@ struct ConfettiView: View {
         let spin: Double
     }
 
+    // On-brand festive colors (same family as the app's gradient palette).
     private static let palette: [Color] = [
-        .cyan, .mint, .yellow, .orange, .pink, .purple, .red, .blue,
+        Color(hex: 0x6D5BFF), Color(hex: 0xFF3D77), Color(hex: 0xFF9F43),
+        Color(hex: 0x12C2E9), Color(hex: 0x38EF7D), Color(hex: 0xFFD200),
+        Color(hex: 0xEC38BC), Color(hex: 0xFF5E62),
     ]
 
     private let pieces: [Piece]
@@ -24,8 +27,8 @@ struct ConfettiView: View {
         pieces = (0..<count).map { i in
             Piece(id: i,
                   xFraction: CGFloat.random(in: 0.03...0.97),
-                  delay: Double.random(in: 0...0.5),
-                  duration: Double.random(in: 1.6...2.8),
+                  delay: Double.random(in: 0...0.25),
+                  duration: Double.random(in: 1.0...1.8),
                   color: Self.palette[i % Self.palette.count],
                   width: CGFloat.random(in: 8...14),
                   spin: Double.random(in: 360...1080))

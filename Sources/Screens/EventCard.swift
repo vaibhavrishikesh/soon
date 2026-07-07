@@ -6,8 +6,10 @@ struct BorderSweep: View {
     var cornerRadius: CGFloat = 24
     var lineWidth: CGFloat = 2.5
     var speed: Double = 6
+    var autoStopAfter: Double? = nil   // nil = run forever; else fade out after N seconds
 
     @State private var spin = false
+    @State private var faded = false
 
     // Stored with an explicit type — a bare 8-element Color literal inside the
     // AngularGradient call sends the type-checker into a long inference spiral.
@@ -21,8 +23,16 @@ struct BorderSweep: View {
             .rotationEffect(.degrees(spin ? 360 : 0))
             .animation(.linear(duration: speed).repeatForever(autoreverses: false), value: spin)
             .mask(RoundedRectangle(cornerRadius: cornerRadius).strokeBorder(lineWidth: lineWidth))
-            .onAppear { spin = true }
+            .opacity(faded ? 0 : 1)
             .allowsHitTesting(false)
+            .onAppear {
+                spin = true
+                if let t = autoStopAfter {
+                    DispatchQueue.main.asyncAfter(deadline: .now() + t) {
+                        withAnimation(.easeOut(duration: 0.8)) { faded = true }
+                    }
+                }
+            }
     }
 }
 
@@ -75,7 +85,9 @@ struct EventCard: View {
         .overlay {
             // Opt-in per event; urgency forces it on (and races) in the final stretch.
             if !event.isPast && (event.borderGlow || urgency >= .pulse) {
-                BorderSweep(speed: urgency >= .pulse ? 1.5 : 6)
+                // Opt-in glow greets for ~10s then rests; urgency keeps racing until acknowledged.
+                BorderSweep(speed: urgency >= .pulse ? 1.5 : 6,
+                            autoStopAfter: urgency >= .pulse ? nil : 10)
             }
         }
         .opacity(event.isPast ? 0.78 : 1)

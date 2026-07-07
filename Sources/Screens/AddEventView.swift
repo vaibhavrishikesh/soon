@@ -28,8 +28,12 @@ struct AddEventView: View {
 
     init(editing: CountdownEvent? = nil) {
         self.editing = editing
+        let presets = Self.makePresets()
+        self.datePresets = presets
+        let defaultDate = presets.first { $0.label == "Next Week" }?.target
+            ?? Calendar.current.date(byAdding: .day, value: 7, to: Date())!
         _title = State(initialValue: editing?.title ?? "")
-        _date = State(initialValue: editing?.date ?? Calendar.current.date(byAdding: .day, value: 7, to: Date())!)
+        _date = State(initialValue: editing?.date ?? defaultDate)
         _symbol = State(initialValue: editing?.symbol ?? "sparkles")
         _colorIndex = State(initialValue: editing?.colorIndex ?? 0)
         _remindDayBefore = State(initialValue: editing?.remindDayBefore ?? false)
@@ -56,16 +60,11 @@ struct AddEventView: View {
                                 .submitLabel(.done)
                                 .onSubmit { titleFocused = false }
                         }
-                        field("Date & time") {
-                            DatePicker("", selection: $date,
-                                       displayedComponents: [.date, .hourAndMinute])
-                                .labelsHidden().datePickerStyle(.compact)
-                                .tint(Palette.colors(colorIndex)[0])
-                        }
+                        whenSection
                         reminders
+                        effects
                         symbolPicker
                         colorPicker
-                        effects
                     }
                     .padding(18)
                     .padding(.bottom, 30)
@@ -120,6 +119,68 @@ struct AddEventView: View {
         }
     }
 
+    // Quick date presets — most countdowns are "N days/weeks away", so offer
+    // one-tap choices instead of making everyone spin the date wheel.
+    private struct DatePreset: Identifiable { let id = UUID(); let label: String; let target: Date }
+    private let datePresets: [DatePreset]
+
+    // Real-world anchors people actually count down to. Computed once at init so
+    // the selected chip stays highlighted (no drift).
+    private static func makePresets() -> [DatePreset] {
+        let cal = Calendar.current
+        let now = Date()
+        func add(_ c: Calendar.Component, _ n: Int) -> Date { cal.date(byAdding: c, value: n, to: now) ?? now }
+        let eightToday = cal.date(bySettingHour: 20, minute: 0, second: 0, of: now) ?? now
+        let tonight = eightToday.timeIntervalSince(now) > 1800
+            ? eightToday
+            : (cal.date(bySettingHour: 20, minute: 0, second: 0, of: add(.day, 1)) ?? add(.day, 1))
+        let saturday = cal.nextDate(after: now, matching: DateComponents(hour: 12, weekday: 7),
+                                    matchingPolicy: .nextTime) ?? add(.day, 3)
+        let newYear = cal.nextDate(after: now, matching: DateComponents(month: 1, day: 1, hour: 0),
+                                   matchingPolicy: .nextTime) ?? add(.year, 1)
+        return [
+            DatePreset(label: "Tonight",      target: tonight),
+            DatePreset(label: "Tomorrow",     target: add(.day, 1)),
+            DatePreset(label: "This Weekend", target: saturday),
+            DatePreset(label: "Next Week",    target: add(.day, 7)),
+            DatePreset(label: "2 Weeks",      target: add(.day, 14)),
+            DatePreset(label: "1 Month",      target: add(.month, 1)),
+            DatePreset(label: "3 Months",     target: add(.month, 3)),
+            DatePreset(label: "6 Months",     target: add(.month, 6)),
+            DatePreset(label: "New Year",     target: newYear),
+        ]
+    }
+
+    private var whenSection: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text("WHEN").font(.caption.bold()).foregroundStyle(Theme.textDim)
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: 10) {
+                    ForEach(datePresets) { p in
+                        let selected = date == p.target
+                        Button {
+                            date = p.target
+                        } label: {
+                            Text(p.label)
+                                .font(.subheadline.weight(.semibold)).foregroundStyle(.white)
+                                .padding(.horizontal, 14).padding(.vertical, 9)
+                                .background(selected ? AnyShapeStyle(Palette.gradient(colorIndex))
+                                                     : AnyShapeStyle(Theme.card),
+                                            in: Capsule())
+                        }
+                        .buttonStyle(.plain)
+                    }
+                }
+                .padding(.horizontal, 2)
+            }
+            DatePicker("", selection: $date, displayedComponents: [.date, .hourAndMinute])
+                .labelsHidden().datePickerStyle(.compact)
+                .tint(Palette.colors(colorIndex)[0])
+                .padding(14)
+                .background(Theme.card, in: RoundedRectangle(cornerRadius: 14))
+        }
+    }
+
     private var symbolPicker: some View {
         VStack(alignment: .leading, spacing: 8) {
             Text("ICON").font(.caption.bold()).foregroundStyle(Theme.textDim)
@@ -157,11 +218,15 @@ struct AddEventView: View {
     private var effects: some View {
         VStack(alignment: .leading, spacing: 8) {
             Text("EFFECTS").font(.caption.bold()).foregroundStyle(Theme.textDim)
-            Toggle("✨ Animated glow border", isOn: $borderGlow)
-                .tint(Palette.colors(colorIndex)[0])
-                .foregroundStyle(.white)
-                .padding(14)
-                .background(Theme.card, in: RoundedRectangle(cornerRadius: 14))
+            VStack(alignment: .leading, spacing: 6) {
+                Toggle("✨ Animated glow border", isOn: $borderGlow)
+                    .tint(Palette.colors(colorIndex)[0])
+                    .foregroundStyle(.white)
+                Text("Adds a moving rainbow ring around this countdown's card.")
+                    .font(.caption2).foregroundStyle(Theme.textDim)
+            }
+            .padding(14)
+            .background(Theme.card, in: RoundedRectangle(cornerRadius: 14))
         }
     }
 
