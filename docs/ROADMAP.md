@@ -54,6 +54,10 @@ Polish runs alongside throughout.
 
 ## 📦 Parked / out of scope (for now)
 
-Live Activities (Dynamic Island) — only fits short-lived events, not multi-day
-countdowns. Apple Watch app. Android. These wait until the core loop + monetization
+ Apple Watch app. Android. These wait until the core loop + monetization
 are proven.
+
+## ✅ 2026-07-07 delight batch (shipped)
+Time-aware states · reminders default ON · opt-in rainbow glow · urgency mode
+(pulse→jump→roam) · confetti · share-as-image · **Live Activity (final-24h
+Dynamic Island + lock banner)**. Spec: `specs/2026-07-07-time-aware-ux-delight-design.md`.
