@@ -55,8 +55,46 @@ cheapest, highest-leverage change available:
 | `Soon: Countdown Widget` | 22 |
 | `Soon: Countdown & Days Until` | 28 |
 
-Also worth checking while in there: the **subtitle** (another 30 characters) and
-the keyword field — neither has been reviewed against real search terms.
+**The keyword field is already good** — checked in ASC on 7 Aug:
+
+```
+countdown,days until,event,birthday,trip,timer,widget,reminder,vacation,anniversary,date,big day
+```
+
+`countdown` is the first keyword and `widget` is in there. Nothing to fix.
+
+**And that is exactly why the name matters.** The keywords already cover the
+right terms and the app still saw 153 impressions in 90 days. Apple weights the
+app *name* far more heavily than the keyword field. The keywords did their job;
+the name did not.
+
+Unflinch is in the identical position — a well-built keyword field
+(`camera shy, public speaking, confidence, video journal, glossophobia, …`) and a
+name nobody searches. **Two apps, same wall.**
+
+Still unreviewed: the **subtitle** (another 30 characters).
+
+## 🔴 #1b — the store listing points AdMob at github.com
+
+**Support URL:** `https://github.com/vaibhavrishikesh/soon`
+**Marketing URL:** *empty*
+
+Two consequences, one of them costing money:
+
+**AdMob cannot verify this app, ever, as things stand.** AdMob takes the
+developer website from the store listing and crawls `<domain>/app-ads.txt`. With
+Marketing URL empty it lands on **github.com**, which returns 406 and will never
+carry our publisher ID. That is why AdMob's error for Soon reads *"your details
+don't match"* while Hydrate's read *"we didn't find"* — different failures,
+correctly described. The app has been on **limited ad serving** because of it.
+
+**And a GitHub repo is not app support.** A user tapping "App Support" lands on
+a code repository.
+
+**Fix (needs a new version — the fields are greyed out on a released version):**
+set **Marketing URL** to `https://tranquilwaters.in/`, which now serves a correct
+`app-ads.txt` (added 7 Aug). Point Support URL at something a user can actually
+use. This rides along with the name change below — one submission, both fixed.
 
 ## 🟠 #2 — the strongest feature is invisible in the listing
 
