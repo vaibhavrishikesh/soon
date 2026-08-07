@@ -1,42 +1,104 @@
 # Soon — What to do next (handoff)
 
-**Updated:** 2026-07-08 · Cross-system handoff. Read this first when picking up Soon.
+**Updated:** 2026-08-07 · Read this first when picking up Soon.
 
 ## 📍 Where we are
-- **v1.0 (build 2) submitted to the App Store.** Apple replied with **Guideline 2.1 —
-  Information Needed** (the mildest outcome — not a defect; they want more info,
-  triggered by the ATT prompt + AdMob ads).
-- **All planned features shipped** (see ROADMAP): widgets, lock-screen live timer,
-  per-event notifications, urgency mode, confetti, share-as-image, Live Activity
-  (Dynamic Island) with dismiss + respect, in-app widget guide.
-- Build number is at **CURRENT_PROJECT_VERSION = 2** (already bumped for resubmit).
 
-## 🔴 #1 priority — clear the App Store review (blocking release)
-Everything is ready; it just needs a reply + a recording.
+**v1.0 is LIVE on the App Store.** The Guideline 2.1 review that this doc used to
+call "#1 priority, blocking release" was cleared long ago — that entry sat here
+stale from 8 July and would have sent the next person to redo finished work.
 
-1. **Screen recording** on a physical iPhone (latest iOS), starting from app launch:
-   launch → create a countdown → show the notification + **ATT** prompts → open a
-   countdown. ~30–60s. (No account/purchase/UGC flows exist.)
-2. **Reply to Apple** in App Store Connect → the rejected submission → *Reply to App
-   Review*: paste the plain-text notes from **[`app-review-notes.md`](app-review-notes.md)**
-   (fill in device model + iOS version) and **attach the recording**.
-3. Also paste the same into **App Information → App Review Information → Notes**.
-4. **Resubmit** (build 2, no code change needed).
+**All planned v1.0 features shipped:** countdowns, home widgets (small + medium),
+lock-screen widgets, lock-screen live timer ticking `{days}d HH:MM:SS`,
+Live Activity / Dynamic Island, per-event notifications, urgency mode, confetti,
+share-as-image, in-app widget guide.
 
-> This is likely all it takes — 2.1 Information Needed usually resolves on reply.
-> The same notes doc is reusable for **unflinch** and **shwaas** (adapt sections 3/4/5).
+## 📊 The numbers, and what they actually say (ASC Analytics, 90 days to 5 Aug)
 
-## 🟡 After approval — launch
-- App Store screenshots must show the app **in use** (not splash/title art) — reuse
-  the share-card look. Set up the listing copy.
-- Marketing loop: the **share-as-image** feature is the content engine — before/after
-  reels of a countdown ticking → Dynamic Island → the moment. Ride that.
+| | Soon |
+|---|---:|
+| App Store Search impressions | **153** (Browse 2) |
+| Product page views | 7 |
+| **Impression → page view** | **4.5%** |
+| Downloads | 8 |
 
-## 🟢 Next features (v1.1+, from ROADMAP — none blocking review)
-1. **Configurable widget** (AppIntent — pick which event a widget shows).
-2. **iCloud sync** (`NSUbiquitousKeyValueStore` first).
-3. **Paywall** (RevenueCat — free N countdowns / premium themes).
-4. Polish: alternate app icons, more symbols/palettes, onboarding.
+Read against the other two apps in the account over the same window:
+
+| | Peak launch bump | Tap rate | Still getting impressions? | Downloads |
+|---|---:|---:|:---:|---:|
+| Hydrate | ~600/day | 4.1% | ✅ yes | 30 |
+| **Soon** | **~21/day** | **4.5%** | ✅ **yes** | 8 |
+| Unflinch | ~800/day | 1.3% | ❌ zero since 31 Jul | 4 |
+
+**Soon has the best tap rate of the three.** Its launch bump was ~40× smaller
+than Unflinch's and it is the one still alive — it took twice the downloads from
+a sixth of the impressions.
+
+> **The funnel is not broken. The top of it is empty.**
+> 153 impressions in 90 days is under 2 a day. Adding features cannot fix that —
+> a new feature only ever reaches the 8 people who already have the app.
+
+## 🔴 #1 — "countdown" is the category's biggest search word and it is not in the name
+
+App Store name: **`Soon: Days Until`** — 16 characters of the 30 Apple allows.
+**14 are being thrown away.**
+
+People type **"countdown"**. The competition is literally named for it:
+Countdown+, Countdown Widget, Countdown Star, Dreamdays. **"Soon" is a brand
+word with no search value at all.**
+
+The name field carries more ASO weight than the keyword field. This is the
+cheapest, highest-leverage change available:
+
+| Candidate | Chars |
+|---|---:|
+| `Soon: Countdown Widget` | 22 |
+| `Soon: Countdown & Days Until` | 28 |
+
+Also worth checking while in there: the **subtitle** (another 30 characters) and
+the keyword field — neither has been reviewed against real search terms.
+
+## 🟠 #2 — the strongest feature is invisible in the listing
+
+**"countdown widget"** is a heavily searched term, and Soon has one of the best
+widget stories in the category — home, lock screen, a live ticking timer, and
+Dynamic Island. Most countdown apps have no Live Activity at all.
+
+The word **"widget" does not appear in the app's name.**
+
+## 🟡 #3 — AdMob is costing more than it earns
+
+In the code: `GoogleMobileAds` plus an `ATTrackingManager` prompt at launch
+(`Sources/SoonApp.swift`, `Sources/Ads/AdBanner.swift`).
+
+What it costs:
+- It is what triggered the **Guideline 2.1 review hold**.
+- A first-time user meets an **ATT permission prompt before creating a single
+  countdown**.
+- At 8 downloads in 90 days the revenue is negligible. (Check AdMob for the real
+  figure — it does not appear in ASC.)
+
+And it interacts with everything above: **first-run experience feeds the ranking
+loop.** A permission prompt on launch is friction at exactly the moment Apple is
+measuring whether people engage.
+
+This is an owner's call, not a technical one. But the trade currently runs the
+wrong way.
+
+## ⛔ What NOT to do next
+
+`ROADMAP.md` lists a **paywall** under v1.1. **Do not build it yet.**
+
+Unflinch is the cautionary case in this same account: the most monetisation work
+of any app here, and the least demand — all of it behind a door nobody reached.
+Its impressions have been zero since 31 July.
+
+At 153 impressions per 90 days a paywall monetises nobody. Fix the name, watch
+whether impressions move, and let that decide when monetisation is worth
+building.
+
+The other v1.1 items (configurable widget via AppIntent, iCloud sync, polish) are
+fine work — they are just not what is limiting this app.
 
 ## 🛠 Build / run notes (don't lose time to these)
 - **After adding ANY Swift file, run `xcodegen generate`** before building — a missing
@@ -50,5 +112,6 @@ Everything is ready; it just needs a reply + a recording.
 
 ## 📂 Key docs
 - [`ROADMAP.md`](ROADMAP.md) — shipped + next.
-- [`app-review-notes.md`](app-review-notes.md) — the Apple reply (ready to paste).
+- [`app-review-notes.md`](app-review-notes.md) — the Apple 2.1 reply. Already used;
+  keep it, it is reusable for other apps in the account.
 - `superpowers/specs/` — design specs for the shipped feature batches.
