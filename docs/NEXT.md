@@ -153,3 +153,29 @@ fine work — they are just not what is limiting this app.
 - [`app-review-notes.md`](app-review-notes.md) — the Apple 2.1 reply. Already used;
   keep it, it is reusable for other apps in the account.
 - `superpowers/specs/` — design specs for the shipped feature batches.
+
+---
+
+## 7 Aug PM (sunil-Mac) — 1.0.1 SUBMITTED: naam + URLs + naye screenshots ✅
+
+**Jo teen cheezein is doc me atki thi, teeno ek submission me gayin —
+1.0.1 (build 4), Waiting for Review 12:29 PM:**
+
+| Field | Ab |
+|---|---|
+| Name | **Soon: Days Until Countdown** (26/30) |
+| Subtitle | **Day counter & event tracker** (naya — khali pada tha) |
+| Marketing URL | https://tranquilwaters.in/ |
+| Support URL | https://tranquilwaters.in/support/ (naya page, live, sab apps ke kaam ka) |
+| Screenshots | 4 naye story-cards (Unflinch-style captions) — factory `marketing/appstore/build-shots.py` is branch pe |
+
+- Branch: **`release/1.0.1`** (origin/main se; version bump + factory yahin) —
+  approval ke baad main me merge karna.
+- **`feature/cinematic-finale` branch + uska uncommitted WIP untouched hai** —
+  local checkout us branch pe hi khada tha, release ke liye alag worktree
+  (`~/Desktop/soon-release-101`) use hua.
+- Upload CLI se hua (`xcodebuild -exportArchive destination=upload`) — Organizer
+  ki zaroorat nahi padi. Auth sunil-user ke Xcode account se aaya.
+- **Release ke BAAD hi**: AdMob me Soon ka "Check for updates" (naya support/
+  marketing URL tabhi crawl hoga jab naya version live ho).
+- Raw sim-shots: `~/Desktop/soon-store-screenshots/` (final 1284x2778 cards).
