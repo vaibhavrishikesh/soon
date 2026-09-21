@@ -8,6 +8,7 @@ struct EventDetailView: View {
 
     @State private var showingEdit = false
     @State private var confirmDelete = false
+    @State private var showingShare = false
     @State private var drift = false        // drives the animated background
     @State private var showConfetti = false
     @State private var shareImage: UIImage?
@@ -47,7 +48,7 @@ struct EventDetailView: View {
 
                 Spacer()
 
-                HStack(spacing: 12) {
+                HStack(alignment: .center, spacing: 12) {
                     actionButton("Edit", "pencil") { showingEdit = true }
                     shareButton
                     actionButton("Delete", "trash") { confirmDelete = true }
@@ -69,6 +70,11 @@ struct EventDetailView: View {
         }
         .task { shareImage = renderShareCard() }
         .sheet(isPresented: $showingEdit) { AddEventView(editing: current) }
+        .sheet(isPresented: $showingShare) {
+            if let ui = shareImage {
+                ActivityShareSheet(items: [ui])
+            }
+        }
         .confirmationDialog("Delete this countdown?", isPresented: $confirmDelete, titleVisibility: .visible) {
             Button("Delete", role: .destructive) { store.delete(current); dismiss() }
         }
@@ -174,25 +180,38 @@ struct EventDetailView: View {
 
     private func actionButton(_ title: String, _ icon: String, action: @escaping () -> Void) -> some View {
         Button(action: action) {
-            Label(title, systemImage: icon)
-                .font(.headline).foregroundStyle(.white)
-                .frame(maxWidth: .infinity).padding(.vertical, 14)
-                .background(.white.opacity(0.18), in: RoundedRectangle(cornerRadius: 16))
+            actionChrome(title, icon)
         }
+        .buttonStyle(.plain)
+        .frame(maxWidth: .infinity)
     }
 
-    // MARK: Share as image
-    @ViewBuilder
-    private var shareButton: some View {
-        if let ui = shareImage {
-            ShareLink(item: Image(uiImage: ui),
-                      preview: SharePreview(current.title, image: Image(uiImage: ui))) {
-                Label("Share", systemImage: "square.and.arrow.up")
-                    .font(.headline).foregroundStyle(.white)
-                    .frame(maxWidth: .infinity).padding(.vertical, 14)
-                    .background(.white.opacity(0.18), in: RoundedRectangle(cornerRadius: 16))
-            }
+    /// Shared chrome so Edit / Share / Delete stay on one baseline (ShareLink
+    /// otherwise sits higher than Button because of its own label metrics).
+    private func actionChrome(_ title: String, _ icon: String) -> some View {
+        HStack(spacing: 8) {
+            Image(systemName: icon)
+            Text(title)
         }
+        .font(.headline)
+        .foregroundStyle(.white)
+        .frame(maxWidth: .infinity)
+        .frame(height: 50)
+        .background(.white.opacity(0.18), in: RoundedRectangle(cornerRadius: 16))
+    }
+
+    // MARK: Share as image — plain Button (not ShareLink) so it lines up with Edit/Delete
+    private var shareButton: some View {
+        Button {
+            guard shareImage != nil else { return }
+            showingShare = true
+        } label: {
+            actionChrome("Share", "square.and.arrow.up")
+                .opacity(shareImage == nil ? 0.45 : 1)
+        }
+        .buttonStyle(.plain)
+        .frame(maxWidth: .infinity)
+        .disabled(shareImage == nil)
     }
 
     @MainActor
@@ -215,4 +234,15 @@ struct EventDetailView: View {
             showConfetti = false
         }
     }
+}
+
+/// UIKit share sheet — keeps Share chrome identical to Edit/Delete Buttons.
+private struct ActivityShareSheet: UIViewControllerRepresentable {
+    let items: [Any]
+
+    func makeUIViewController(context: Context) -> UIActivityViewController {
+        UIActivityViewController(activityItems: items, applicationActivities: nil)
+    }
+
+    func updateUIViewController(_ uiViewController: UIActivityViewController, context: Context) {}
 }

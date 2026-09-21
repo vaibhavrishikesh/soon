@@ -35,6 +35,12 @@ final class EventStore: ObservableObject {
 
     // MARK: Persistence (App Group — shared with the widget)
     private func load() {
+        if StoreShots.enabled {
+            // Always fresh demo data for App Store captures.
+            events = CountdownEvent.storeShotsSamples
+            save()
+            return
+        }
         let stored = SoonData.loadEvents()
         if stored.isEmpty {
             // First run: seed samples and persist them so the widget sees them too.

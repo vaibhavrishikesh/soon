@@ -1,6 +1,34 @@
 # Soon — What to do next (handoff)
 
-**Updated:** 2026-08-07 · Read this first when picking up Soon.
+**Updated:** 2026-09-20 · **Wave = ASO only** (owner lock).
+
+→ **Active plan:** [`ASO-PLAN-20SEP.md`](ASO-PLAN-20SEP.md) (screenshots) · **[`SPRINT-20SEP-FIXES.md`](SPRINT-20SEP-FIXES.md)** — 2–3 day fixes then deploy 1.0.2.
+
+## 20 Sep — ASO + next sprint
+
+- Android Soon: **nahi** (iOS-only repo).
+- Live **1.0.1** name/subtitle/URLs OK — **mat chedo**.
+- Store shots ready: `marketing/appstore/out-6.5/` + `~/Desktop/soon-store-screenshots-v2/` (incl. roam).
+- **Next (2–3 days):** FAB vs AdMob clash · circular roam · re-shoot · 1.0.2 deploy. See sprint doc. **Code pause until “Day 1 start”.**
+- Hydrate iOS CallKit/China: Waiting for Review — mat chedo.
+
+---
+
+## 12 Sep — AdMob OK · numbers (owner shots)
+
+**AdMob store URL theek hai.** 7 Aug ka `#1b` (github.com / empty Marketing URL) **band**.
+Phir se Check for updates / URL fix mat.
+
+ASC Acquisition → Sources, **13 Jun – 10 Sep**:
+
+| | Search | Browse | Referrer | Unavailable | Total |
+|---|---:|---:|---:|---:|---:|
+| Impressions | **423** | 9 | 2 | — | 434 |
+| Downloads | **14** | 5 | 1 | 1 | **21** |
+
+Search **14 / 423 ≈ 3.3%**. Roz search impressions ~5–15 (Aug–Sep). Launch spike ~9 Jul (~20). 1.0.1 naam (12 Aug) ne doosri spike nahi di — line zinda rahi.
+
+Nateeja wahi: **funnel theek, top chhota.** AdMob unlock ads ko 21 DL pe nahi badhega. **Paywall / configurable widget / iCloud abhi mat.** Hydrate 8 / UnlockYou 12 wave mein Soon park.
 
 ## 📍 Where we are
 

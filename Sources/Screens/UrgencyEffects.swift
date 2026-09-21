@@ -48,61 +48,76 @@ extension View {
     }
 }
 
-/// Stage 3: the card breaks loose — a bold pill pops in with a spring, breathes
-/// for attention, and drifts around the whole app until the user taps it.
+/// Stage 3: final minutes — a WhatsApp-style circular bubble parks in the
+/// trailing thumb zone (no random drift). Pulse + live timer; tap opens detail.
 struct RoamingCard: View {
     let event: CountdownEvent
     let acknowledge: () -> Void
 
-    @State private var pos = CGPoint(x: 160, y: 200)
-    @State private var pop = false        // spring entrance
-    @State private var breathe = false    // continuous attention pulse
-    private let driftTimer = Timer.publish(every: 1.7, on: .main, in: .common).autoconnect()
+    @State private var pop = false
+    @State private var breathe = false
+
+    private let bubble: CGFloat = 72
 
     var body: some View {
         GeometryReader { geo in
             Button(action: acknowledge) {
-                HStack(spacing: 11) {
-                    Image(systemName: event.symbol)
-                        .font(.title3.bold())
-                    VStack(alignment: .leading, spacing: 2) {
-                        Text(event.title).font(.subheadline.bold()).lineLimit(1)
-                        if event.date > Date() {
-                            Text(timerInterval: Date()...event.date, countsDown: true)
-                                .font(.headline.monospacedDigit().bold())
+                VStack(spacing: 8) {
+                    ZStack {
+                        Circle()
+                            .fill(event.gradient)
+                            .frame(width: bubble, height: bubble)
+                            .overlay(Circle().stroke(.white.opacity(0.4), lineWidth: 1.5))
+                            .overlay(BorderSweep(cornerRadius: bubble / 2, lineWidth: 2.5, speed: 1.0))
+                            .shadow(color: event.colors[0].opacity(0.65), radius: 16, y: 6)
+
+                        VStack(spacing: 2) {
+                            Image(systemName: event.symbol)
+                                .font(.system(size: 22, weight: .bold))
+                            if event.date > Date() {
+                                Text(timerInterval: Date()...event.date, countsDown: true)
+                                    .font(.system(size: 9, weight: .bold).monospacedDigit())
+                                    .lineLimit(1)
+                                    .minimumScaleFactor(0.7)
+                            }
                         }
-                        Text("almost time — tap me! 👆")
-                            .font(.system(size: 10, weight: .semibold)).opacity(0.9)
+                        .foregroundStyle(.white)
+                        .frame(width: bubble - 12)
                     }
+                    .scaleEffect(pop ? 1.0 : 0.25)
+                    .scaleEffect(breathe ? 1.06 : 1.0)
+                    .opacity(pop ? 1 : 0)
+
+                    Text(event.title)
+                        .font(.caption2.bold())
+                        .foregroundStyle(.white)
+                        .lineLimit(1)
+                        .padding(.horizontal, 10)
+                        .padding(.vertical, 4)
+                        .background(.ultraThinMaterial, in: Capsule())
+                        .opacity(pop ? 1 : 0)
+
+                    Text("almost time — tap me")
+                        .font(.system(size: 10, weight: .semibold))
+                        .foregroundStyle(.white.opacity(0.85))
+                        .opacity(pop ? 1 : 0)
                 }
-                .foregroundStyle(.white)
-                .padding(.vertical, 12).padding(.horizontal, 18)
-                .background(event.gradient, in: Capsule())
-                .overlay(Capsule().stroke(.white.opacity(0.35), lineWidth: 1))
-                .overlay(BorderSweep(cornerRadius: 40, lineWidth: 2.5, speed: 1.0))
-                .shadow(color: event.colors[0].opacity(0.7), radius: 20, y: 8)
-                .scaleEffect(pop ? 1.0 : 0.3)        // entrance
-                .scaleEffect(breathe ? 1.05 : 1.0)   // breathing pulse
-                .opacity(pop ? 1 : 0)
             }
-            .position(pos)
+            .buttonStyle(.plain)
+            .accessibilityLabel("\(event.title), almost time, tap to open")
+            // Trailing thumb zone — clear of status bar and bottom FAB/ad chrome.
+            .position(
+                x: geo.size.width - (bubble / 2) - 18,
+                y: min(max(geo.size.height * 0.42, 160), geo.size.height - 220)
+            )
             .onAppear {
-                pos = CGPoint(x: geo.size.width / 2, y: 170)
                 UINotificationFeedbackGenerator().notificationOccurred(.warning)
                 withAnimation(.spring(response: 0.5, dampingFraction: 0.55)) { pop = true }
                 withAnimation(.easeInOut(duration: 0.9).repeatForever(autoreverses: true).delay(0.55)) {
                     breathe = true
                 }
             }
-            .onReceive(driftTimer) { _ in
-                let minX: CGFloat = 100
-                let maxX = max(minX + 20, geo.size.width - 100)
-                let minY: CGFloat = 140
-                let maxY = max(minY + 40, geo.size.height - 180)
-                withAnimation(.easeInOut(duration: 1.3)) {
-                    pos = CGPoint(x: .random(in: minX...maxX), y: .random(in: minY...maxY))
-                }
-            }
         }
+        .allowsHitTesting(true)
     }
 }

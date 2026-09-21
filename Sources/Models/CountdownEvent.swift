@@ -118,11 +118,61 @@ struct CountdownEvent: Identifiable, Codable, Hashable {
     // MARK: Sample seed (shared by the app's first-run and the widget placeholder)
     static var samples: [CountdownEvent] {
         let cal = Calendar.current
-        func day(_ n: Int) -> Date { cal.date(byAdding: .day, value: n, to: Date()) ?? Date() }
+        func day(_ n: Int, hour: Int = 18, minute: Int = 0) -> Date {
+            let base = cal.date(byAdding: .day, value: n, to: Date()) ?? Date()
+            var c = cal.dateComponents([.year, .month, .day], from: base)
+            c.hour = hour; c.minute = minute
+            return cal.date(from: c) ?? base
+        }
         return [
-            CountdownEvent(title: "Goa Trip",    date: day(5),  symbol: "airplane",          colorIndex: 3),
-            CountdownEvent(title: "My Birthday", date: day(23), symbol: "birthday.cake.fill", colorIndex: 1),
-            CountdownEvent(title: "New Year",    date: day(40), symbol: "sparkles",           colorIndex: 0),
+            CountdownEvent(title: "Our Anniversary", date: day(12), symbol: "heart.fill",
+                           colorIndex: 0, remindDayBefore: true, remindOnDay: true, borderGlow: true),
+            CountdownEvent(title: "Goa Trip", date: day(5, hour: 9), symbol: "airplane",
+                           colorIndex: 3, remindDayBefore: true),
+            CountdownEvent(title: "My Birthday", date: day(23, hour: 12), symbol: "birthday.cake.fill",
+                           colorIndex: 1, remindOnDay: true),
+            CountdownEvent(title: "New Year", date: day(40), symbol: "sparkles", colorIndex: 0),
+        ]
+    }
+
+    /// Richer seed for App Store captures: live ticker today + urgency pulse card.
+    static var storeShotsSamples: [CountdownEvent] {
+        let cal = Calendar.current
+        let now = Date()
+        func day(_ n: Int, hour: Int = 18, minute: Int = 0) -> Date {
+            let base = cal.date(byAdding: .day, value: n, to: now) ?? now
+            var c = cal.dateComponents([.year, .month, .day], from: base)
+            c.hour = hour; c.minute = minute
+            return cal.date(from: c) ?? base
+        }
+        func minutesFromNow(_ m: Int) -> Date {
+            cal.date(byAdding: .minute, value: m, to: now) ?? now
+        }
+        // Today evening — detail shows 00 DAYS ticking + confetti on open.
+        let tonight: Date = {
+            var c = cal.dateComponents([.year, .month, .day], from: now)
+            c.hour = 20; c.minute = 0
+            let candidate = cal.date(from: c) ?? now
+            // If 8pm already passed, use +90 min so it's still "today" and upcoming.
+            if candidate <= now { return minutesFromNow(90) }
+            return candidate
+        }()
+        return [
+            CountdownEvent(title: "Goa Trip", date: day(5, hour: 9), symbol: "airplane",
+                           colorIndex: 3, remindDayBefore: true),
+            CountdownEvent(title: "Our Anniversary", date: day(12), symbol: "heart.fill",
+                           colorIndex: 0, remindDayBefore: true, remindOnDay: true, borderGlow: true),
+            CountdownEvent(title: "Date Night", date: tonight, symbol: "heart.fill",
+                           colorIndex: 1, remindOnDay: true, borderGlow: true),
+            // Final-hour pulse (home list glow).
+            CountdownEvent(title: "Flight Home", date: minutesFromNow(42), symbol: "airplane",
+                           colorIndex: 3, remindOnDay: true, borderGlow: true),
+            // Final 3 min — roaming floating card ("almost time — tap me").
+            CountdownEvent(title: "Dinner Plans", date: minutesFromNow(2), symbol: "fork.knife",
+                           colorIndex: 0, remindOnDay: true, borderGlow: true),
+            CountdownEvent(title: "My Birthday", date: day(23, hour: 12), symbol: "birthday.cake.fill",
+                           colorIndex: 1, remindOnDay: true),
+            CountdownEvent(title: "New Year", date: day(40), symbol: "sparkles", colorIndex: 0),
         ]
     }
 }

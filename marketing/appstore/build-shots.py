@@ -37,10 +37,14 @@ h1 em {{ font-style:italic; color:#A78BFF; }}
 </body></html>"""
 
 SHOTS = [
-    ("home.png",      "The days you <em>can't wait</em> for."),
-    ("detail.png",    "Watch them melt away — <em>to the second.</em>"),
-    ("add.png",       "Add one <em>in seconds.</em>"),
-    ("confetti.png",  "And then, one morning — <em>it's today.</em>"),
+    # ASO set — includes roaming final-minutes card
+    ("home.png",    "The days you <em>can't wait</em> for."),
+    ("detail.png",  "Watch them melt away — <em>to the second.</em>"),
+    ("today.png",   "Today. Counting down <em>live.</em>"),
+    ("roam.png",    "Almost time — the countdown <em>follows you.</em>"),
+    ("urgency.png", "When it's close — the card <em>won't sit still.</em>"),
+    ("widgets.png", "Home & lock screen <em>countdown widget</em>"),
+    ("add.png",     "Add one <em>in seconds.</em>"),
 ]
 
 def main(raw, out):

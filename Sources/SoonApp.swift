@@ -10,7 +10,9 @@ struct SoonApp: App {
     private static let notifDelegate = NotificationDelegate()
 
     init() {
-        GADMobileAds.sharedInstance().start(completionHandler: nil)
+        if !StoreShots.enabled {
+            GADMobileAds.sharedInstance().start(completionHandler: nil)
+        }
         // Present reminders even while the app is open (foreground).
         UNUserNotificationCenter.current().delegate = Self.notifDelegate
     }
@@ -21,6 +23,7 @@ struct SoonApp: App {
                 .environmentObject(store)
                 .preferredColorScheme(.dark)
                 .task {
+                    guard !StoreShots.enabled else { return }
                     await requestPermissions()
                     NotificationManager.rescheduleAll(store.events)
                     // Live Activity for the soonest event in its final 24h.
